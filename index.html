@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Трофейный Клёв v1.8 — Симулятор Рыбалки</title>
+    <title>Трофейный Клёв v1.9 — Симулятор Рыбалки</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <style>
@@ -1228,6 +1228,9 @@
                             <button type="button" onclick="openAtlasModal()" class="btn btn-sm glass-pill-btn" style="color: #fbbf24; padding: 5px 7px; font-size: 11px;">
                                 📖 Атлас
                             </button>
+                            <button type="button" onclick="openAlmanacModal()" class="btn btn-sm glass-pill-btn" style="color: #6ee7b7; padding: 5px 7px; font-size: 11px;">
+                                📚 Альманах
+                            </button>
                             <button type="button" onclick="campfireRest()" class="btn btn-sm glass-pill-btn" style="color: #fb923c; padding: 5px 7px; font-size: 11px;">
                                 🔥 Костёр
                             </button>
@@ -1558,26 +1561,52 @@
 
             <!-- ==================== ВКЛАДКА 8: ЛИДЕРЫ ==================== -->
             <section id="tab-leaders" class="hidden" style="display: flex; flex-direction: column; gap: 10px;">
-                <div class="card">
-                    <div style="display:flex; justify-content:space-between; align-items:center; gap: 8px; margin-bottom: 6px;">
-                        <div>
-                            <div style="font-size: 15px; font-weight: 900;">🏆 Общий онлайн-рейтинг</div>
-                            <div id="cloud-sync-status" style="font-size: 11px; color: #34d399; font-weight: 700;">🟢 Подключение к облачной базе...</div>
-                        </div>
-                        <button type="button" onclick="fetchCloudLeaderboard(true)" class="btn btn-primary btn-sm">🔄 Обновить</button>
-                    </div>
-
-                    <div class="chip-scroll" id="leader-sort-chips" style="margin-top: 6px;">
-                        <button type="button" class="chip active" data-sort="bestWeight" onclick="setLeaderSort('bestWeight')">🐋 По рекорду веса</button>
-                        <button type="button" class="chip" data-sort="level" onclick="setLeaderSort('level')">🏆 По уровню и XP</button>
-                        <button type="button" class="chip" data-sort="caughtCount" onclick="setLeaderSort('caughtCount')">🐟 По улову</button>
-                        <button type="button" class="chip" data-sort="money" onclick="setLeaderSort('money')">💰 По капиталу</button>
-                        <button type="button" class="chip" data-sort="totalWeight" onclick="setLeaderSort('totalWeight')">⚖️ Общий вес</button>
-                        <button type="button" class="chip" data-sort="playSeconds" onclick="setLeaderSort('playSeconds')">⏱️ Часы</button>
-                    </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                    <button id="subtab-leaders-players-btn" type="button" onclick="switchLeadersSubtab('players')" class="btn btn-primary btn-sm" style="padding: 10px;">
+                        🏆 Рейтинг игроков
+                    </button>
+                    <button id="subtab-leaders-species-btn" type="button" onclick="switchLeadersSubtab('species')" class="btn btn-secondary btn-sm" style="padding: 10px;">
+                        🐟 Рекорды по видам рыб
+                    </button>
                 </div>
 
-                <div id="leaders-list" style="display: flex; flex-direction: column; gap: 7px;"></div>
+                <div id="leaders-players-panel" style="display: flex; flex-direction: column; gap: 10px;">
+                    <div class="card">
+                        <div style="display:flex; justify-content:space-between; align-items:center; gap: 8px; margin-bottom: 6px;">
+                            <div>
+                                <div style="font-size: 15px; font-weight: 900;">🏆 Общий онлайн-рейтинг</div>
+                                <div id="cloud-sync-status" style="font-size: 11px; color: #34d399; font-weight: 700;">🟢 Подключение к облачной базе...</div>
+                            </div>
+                            <button type="button" onclick="fetchCloudLeaderboard(true)" class="btn btn-primary btn-sm">🔄 Обновить</button>
+                        </div>
+
+                        <div class="chip-scroll" id="leader-sort-chips" style="margin-top: 6px;">
+                            <button type="button" class="chip active" data-sort="bestWeight" onclick="setLeaderSort('bestWeight')">🐋 По рекорду веса</button>
+                            <button type="button" class="chip" data-sort="trophyCount" onclick="setLeaderSort('trophyCount')">🏆 По трофеям</button>
+                            <button type="button" class="chip" data-sort="level" onclick="setLeaderSort('level')">⭐ По уровню и XP</button>
+                            <button type="button" class="chip" data-sort="caughtCount" onclick="setLeaderSort('caughtCount')">🐟 По улову</button>
+                            <button type="button" class="chip" data-sort="money" onclick="setLeaderSort('money')">💰 По капиталу</button>
+                            <button type="button" class="chip" data-sort="totalWeight" onclick="setLeaderSort('totalWeight')">⚖️ Общий вес</button>
+                            <button type="button" class="chip" data-sort="playSeconds" onclick="setLeaderSort('playSeconds')">⏱️ Часы</button>
+                        </div>
+                    </div>
+
+                    <div id="leaders-list" style="display: flex; flex-direction: column; gap: 7px;"></div>
+                </div>
+
+                <div id="leaders-species-panel" class="hidden" style="display: flex; flex-direction: column; gap: 8px;">
+                    <div class="card">
+                        <div style="display:flex; justify-content:space-between; align-items:center; gap: 8px; margin-bottom: 6px;">
+                            <div>
+                                <div style="font-size: 15px; font-weight: 900; color: #38bdf8;">🐟 Рекорды по видам рыб</div>
+                                <div style="font-size: 11px; color: #94a3b8;">Сравните свой личный рекорд с мировым рекордом среди всех игроков</div>
+                            </div>
+                            <button type="button" onclick="fetchCloudSpeciesRecords(true)" class="btn btn-blue btn-sm">🔄</button>
+                        </div>
+                        <div class="chip-scroll" id="species-records-loc-chips"></div>
+                    </div>
+                    <div id="species-records-list" style="display: flex; flex-direction: column; gap: 7px;"></div>
+                </div>
 
                 <details class="card" style="padding: 9px 11px;">
                     <summary style="font-size: 12px; font-weight: 800; color: #94a3b8; cursor: pointer;">📦 Резервный обмен кодом рыбака (офлайн)</summary>
@@ -1828,6 +1857,21 @@
                 <button id="btn-keep-fish" type="button" onclick="keepCaughtFish()" class="btn btn-primary" style="padding: 12px;">🧺 В садок</button>
                 <button id="btn-sell-now-fish" type="button" onclick="sellCaughtFishImmediately()" class="btn btn-gold" style="padding: 12px;">💰 Продать сразу (-15%)</button>
             </div>
+        </div>
+    </div>
+
+    <!-- Альманах рыб (Бестиарий и предпочтения дня) -->
+    <div id="modal-almanac" class="modal-backdrop hidden">
+        <div class="modal-card">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 8px;">
+                <div>
+                    <h3 style="font-size: 16px; font-weight: 900; color: #38bdf8; margin:0;">📚 Альманах рыб (Бестиарий)</h3>
+                    <div id="almanac-day-subtitle" style="font-size: 10px; color: #94a3b8;">Игровые сутки • Предпочтения обновляются ежедневно</div>
+                </div>
+                <button type="button" onclick="closeAlmanacModal()" class="btn btn-secondary btn-sm">✕</button>
+            </div>
+            <div class="chip-scroll" id="almanac-loc-chips" style="margin-bottom: 8px;"></div>
+            <div id="almanac-content-list" style="display: flex; flex-direction: column; gap: 8px;"></div>
         </div>
     </div>
 
@@ -2397,15 +2441,27 @@
                 { id: 'mackerel', name: 'Крупная ставрида (Морской живец)', icon: '🐠', qty: 10, price: 2200, desc: 'Крупная морская наживка для охоты на Гренландскую акулу и Белугу до 1 тонны!' }
             ],
             chums: [
-                { id: 'chum_base', name: 'База «Сухари и Жмых»', qty: 5, price: 180, biteBonus: 1.22, weightBonus: 1.04, targetLocs: ['pond', 'river', 'lake', 'fjord', 'sea', 'abyss', 'event_lagoon'], desc: '+22% к частоте поклёвок на любом водоёме.' },
-                { id: 'chum_anise', name: '«Карась-Линь Анис»', qty: 5, price: 320, biteBonus: 1.35, weightBonus: 1.12, targetLocs: ['pond', 'event_lagoon'], desc: 'Собирает косяки карася, линя и карповых на пруду.' },
-                { id: 'chum_vanilla', name: '«Лещ-Плотва Ваниль»', qty: 5, price: 380, biteBonus: 1.35, weightBonus: 1.14, targetLocs: ['lake', 'river'], desc: 'Приманивает крупного леща и плотву.' },
-                { id: 'chum_carp', name: '«Карп-Сазан Клубника»', qty: 5, price: 550, biteBonus: 1.3, weightBonus: 1.2, targetLocs: ['pond', 'event_lagoon'], desc: 'Увеличивает средний вес сазана и черепашьего карпа.' },
-                { id: 'chum_predator', name: '«Хищник Кровь и Малёк»', qty: 5, price: 680, biteBonus: 1.38, weightBonus: 1.2, targetLocs: ['river', 'lake'], desc: 'Притягивает щуку, судака, жереха и тайменя.' },
-                { id: 'chum_catfish', name: '«Сомовий Магнит (Печень)»', qty: 5, price: 950, biteBonus: 1.4, weightBonus: 1.25, targetLocs: ['lake', 'river'], desc: 'Приманивает глубинных сомов и Левиафана.' },
-                { id: 'chum_sea', name: '«Морской Крилль и Икра»', qty: 5, price: 2400, biteBonus: 1.45, weightBonus: 1.3, targetLocs: ['sea', 'fjord', 'abyss'], desc: 'Создаёт мощный шлейф во Фьорде и Каспии для палтуса, акулы и белуги!' }
+                { id: 'chum_base', name: 'База «Сухари и Жмых»', qty: 5, price: 180, biteBonus: 1.24, weightBonus: 1.05, targetLocs: ['pond', 'river', 'lake', 'fjord', 'sea', 'abyss', 'event_lagoon'], targetSpecies: ['verkhovka', 'rotan', 'gudgeon', 'dace', 'roach', 'mullet', 'ev_koi_pearl'], desc: 'Ускоряет клёв до 1.24x и привлекает (×2.8) мирную и прибрежную рыбу.' },
+                { id: 'chum_anise', name: '«Карась-Линь Анис»', qty: 5, price: 320, biteBonus: 1.32, weightBonus: 1.12, targetLocs: ['pond', 'event_lagoon'], targetSpecies: ['crucian', 'tench', 'pond_rare_gold_crucian', 'ev_koi_pearl'], desc: 'Скорость клёва 1.32x; шанс поклёвки карася, линя и Царь-Карася ×2.8!' },
+                { id: 'chum_vanilla', name: '«Лещ-Плотва Ваниль»', qty: 5, price: 380, biteBonus: 1.34, weightBonus: 1.14, targetLocs: ['lake', 'river'], targetSpecies: ['bream', 'roach', 'chub', 'river_rare_grayling'], desc: 'Скорость клёва 1.34x; приманивает (×2.8) леща, плотву, голавля и хариуса.' },
+                { id: 'chum_carp', name: '«Карп-Сазан Клубника»', qty: 5, price: 550, biteBonus: 1.36, weightBonus: 1.2, targetLocs: ['pond', 'event_lagoon'], targetSpecies: ['mirror_carp', 'grass_carp', 'pond_rare_sazan', 'pond_rare_turtle_carp', 'ev_rare_phoenix_carp'], desc: 'Скорость клёва 1.36x; шанс выхода карпа, амура, сазана и Феникса ×2.8!' },
+                { id: 'chum_predator', name: '«Хищник Кровь и Малёк»', qty: 5, price: 680, biteBonus: 1.38, weightBonus: 1.2, targetLocs: ['river', 'lake', 'event_lagoon'], targetSpecies: ['perch', 'asp', 'pike', 'zander', 'river_rare_taimen', 'ev_amber_perch', 'ev_sapphire_pike'], desc: 'Скорость клёва 1.38x; притягивает (×2.8) щуку, судака, жереха, окуня и тайменя.' },
+                { id: 'chum_catfish', name: '«Сомовий Магнит (Печень)»', qty: 5, price: 950, biteBonus: 1.41, weightBonus: 1.25, targetLocs: ['lake', 'river'], targetSpecies: ['river_giant_catfish', 'catfish', 'burbot', 'lake_paddlefish', 'lake_rare_eel', 'lake_rare_leviathan', 'lake_rare_dragon_sturgeon', 'river_rare_beluga_jr'], desc: 'Скорость клёва 1.41x; шанс поклёвки сомов, налима, угря и осетров ×2.8!' },
+                { id: 'chum_sea', name: '«Морской Крилль и Икра»', qty: 5, price: 2400, biteBonus: 1.45, weightBonus: 1.3, targetLocs: ['sea', 'fjord', 'abyss', 'event_lagoon'], targetSpecies: ['fjord_cod', 'fjord_wolffish', 'fjord_salmon', 'fjord_halibut', 'fjord_porbeagle', 'fjord_rare_king_crab_fish', 'fjord_rare_halibut_titan', 'fjord_rare_greenland_shark', 'turbot', 'sevruga', 'dogfish', 'bluefin_tuna', 'white_sturgeon', 'sea_rare_salmon', 'sea_rare_kaluga', 'sea_rare_beluga', 'abyss_oarfish', 'abyss_sunfish', 'abyss_giant_squid', 'abyss_marlin', 'abyss_rare_coelacanth', 'abyss_rare_manta', 'abyss_rare_megalodon', 'ev_rare_celestial_sturgeon', 'ev_rare_founder_leviathan'], desc: 'Максимальная скорость клёва 1.45x; шанс выхода морских и глубинных гигантов ×2.8!' }
             ]
         };
+
+
+        // Случайные находки со дна и сверхредкий артефакт (~5.5% шанс при поклёвке)
+        var JUNK_ARTIFACTS = [
+            { id: 'junk_can', name: 'Ржавая консервная банка', icon: '🥫', money: 1, hooks: 0, weight: 0.15, isChest: false, weightChance: 28, desc: 'Кто-то оставил на берегу много лет назад. Сдали в металлолом.' },
+            { id: 'junk_snag', name: 'Заиленная коряга', icon: '🪵', money: 2, hooks: 0, weight: 2.40, isChest: false, weightChance: 25, desc: 'Тяжёлый кусок старого дуба со дна водоёма.' },
+            { id: 'junk_boot', name: 'Рваный резиновый сапог', icon: '👢', money: 3, hooks: 0, weight: 0.85, isChest: false, weightChance: 22, desc: 'Классический «трофей» любого рыбака! Пригодится на растопку.' },
+            { id: 'junk_kettle', name: 'Дырявый походный чайник', icon: '🫖', money: 8, hooks: 0, weight: 0.65, isChest: false, weightChance: 12, desc: 'Прохудившийся алюминиевый чайник, сдан на цветмет.' },
+            { id: 'junk_tire', name: 'Старая автомобильная покрышка', icon: '🛞', money: 12, hooks: 0, weight: 9.50, isChest: false, weightChance: 8, desc: 'Сопротивлялась на течении как настоящий сом!' },
+            { id: 'junk_compass', name: 'Сломанный морской компас', icon: '🧭', money: 45, hooks: 0, weight: 0.35, isChest: false, weightChance: 4.3, desc: 'Старинный латунный корпус со стрелкой — антиквар дал 45 ₽.' },
+            { id: 'artifact_dubloon_chest', name: '👑 Затонувший сундук с дублонами', icon: '💰', money: 50000, hooks: 15, weight: 18.50, isChest: true, weightChance: 0.7, desc: 'НЕВЕРОЯТНАЯ УДАЧА! Древний окованный сундук, доверху набитый золотыми дублонами!' }
+        ];
 
         var SHOP_FOOD = [
             { id: 'food_bread', type: 'food', name: 'Краюха хлеба с салом', icon: '🥪', hunger: 28, energy: 5, price: 85, desc: '+28% Сытости, +5% Бодрости.' },
@@ -2523,6 +2579,10 @@
 
         var FIREBASE_DB_URL = 'https://klev-vova-default-rtdb.europe-west1.firebasedatabase.app';
         var cloudPlayersCache = {};
+        var cloudSpeciesRecordsCache = {};
+        var leadersSubtab = 'players';
+        var speciesRecordsLocFilter = 'all';
+        var almanacLocFilter = 'pond';
         var cloudLobbiesCache = {};
         var cloudChatGlobalCache = {};
         var cloudChatLobbyCache = {};
@@ -2664,6 +2724,7 @@
                 totalWeight: +((state.stats && state.stats.totalWeight) || 0).toFixed(2),
                 bestWeight: +((state.stats && state.stats.bestWeight) || 0).toFixed(2),
                 bestFishName: (state.stats && state.stats.bestFishName) || 'Пока нет',
+                trophyCount: (state.stats && state.stats.trophyCount) || 0,
                 playSeconds: (state.stats && state.stats.playSeconds) || 0,
                 equippedRodName: rig && rig.rod ? rig.rod.name : 'Бамбуковая удочка',
                 lastSeen: now
@@ -2707,6 +2768,139 @@
                     if (stEl) stEl.textContent = '🟡 Нет связи с облаком — показаны локальные игроки';
                     renderLeaders();
                 });
+        }
+
+        /* ==================== РЕКОРДЫ ПО КАЖДОМУ ВИДУ РЫБЫ (FIREBASE /species_records) ==================== */
+        function submitSpeciesRecordToCloud(speciesObj, weightKg) {
+            if (!state || !speciesObj || !speciesObj.id) return;
+            var spId = speciesObj.id;
+            var w = +(+weightKg).toFixed(2);
+            if (!state.stats.speciesRecords) state.stats.speciesRecords = {};
+            var prevPersonal = +(state.stats.speciesRecords[spId] || 0);
+            if (w > prevPersonal) {
+                state.stats.speciesRecords[spId] = w;
+            }
+
+            var currentWorld = cloudSpeciesRecordsCache[spId];
+            var prevWorldW = currentWorld ? +(currentWorld.weight || 0) : 0;
+            if (w > prevWorldW) {
+                var recObj = {
+                    speciesId: spId,
+                    speciesName: speciesObj.name,
+                    loc: speciesObj.loc,
+                    weight: w,
+                    login: state.login,
+                    avatar: state.avatar || '🎣',
+                    hasCrown: !!state.hasCrown,
+                    updatedAt: Date.now()
+                };
+                cloudSpeciesRecordsCache[spId] = recObj;
+                if (typeof fetch === 'function') {
+                    fetch(FIREBASE_DB_URL + '/species_records/' + spId + '.json')
+                        .then(function(r) { return r.ok ? r.json() : null; })
+                        .then(function(remoteRec) {
+                            if (!remoteRec || w > +(remoteRec.weight || 0)) {
+                                fetch(FIREBASE_DB_URL + '/species_records/' + spId + '.json', {
+                                    method: 'PUT',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify(recObj)
+                                }).catch(function() {});
+                            } else {
+                                cloudSpeciesRecordsCache[spId] = remoteRec;
+                            }
+                        })
+                        .catch(function() {});
+                }
+            }
+        }
+
+        function fetchCloudSpeciesRecords(manualClick) {
+            if (typeof fetch !== 'function') {
+                renderSpeciesRecordsTab();
+                return;
+            }
+            fetch(FIREBASE_DB_URL + '/species_records.json')
+                .then(function(r) { return r.ok ? r.json() : null; })
+                .then(function(data) {
+                    if (data && typeof data === 'object') {
+                        cloudSpeciesRecordsCache = data;
+                    }
+                    if (manualClick) showToast('🐟 Мировые рекорды видов обновлены!', '#38bdf8');
+                    if (currentTab === 'leaders' && leadersSubtab === 'species') renderSpeciesRecordsTab();
+                    if (!document.getElementById('modal-almanac').classList.contains('hidden')) renderAlmanacModal();
+                })
+                .catch(function() {
+                    if (currentTab === 'leaders' && leadersSubtab === 'species') renderSpeciesRecordsTab();
+                });
+        }
+
+        function switchLeadersSubtab(sub) {
+            leadersSubtab = sub;
+            var pPanel = document.getElementById('leaders-players-panel');
+            var sPanel = document.getElementById('leaders-species-panel');
+            if (pPanel) pPanel.classList.toggle('hidden', sub !== 'players');
+            if (sPanel) sPanel.classList.toggle('hidden', sub !== 'species');
+            var pBtn = document.getElementById('subtab-leaders-players-btn');
+            var sBtn = document.getElementById('subtab-leaders-species-btn');
+            if (pBtn) pBtn.className = sub === 'players' ? 'btn btn-primary btn-sm' : 'btn btn-secondary btn-sm';
+            if (sBtn) sBtn.className = sub === 'species' ? 'btn btn-blue btn-sm' : 'btn btn-secondary btn-sm';
+            if (sub === 'species') {
+                fetchCloudSpeciesRecords(false);
+                renderSpeciesRecordsTab();
+            } else {
+                renderLeaders();
+            }
+        }
+
+        function setSpeciesRecordsLocFilter(locId) {
+            speciesRecordsLocFilter = locId;
+            renderSpeciesRecordsTab();
+        }
+
+        function renderSpeciesRecordsTab() {
+            if (!state) return;
+            var chipsEl = document.getElementById('species-records-loc-chips');
+            var listEl = document.getElementById('species-records-list');
+            if (!chipsEl || !listEl) return;
+
+            var locKeys = ['all'].concat(Object.keys(LOCATIONS));
+            chipsEl.innerHTML = locKeys.map(function(lk) {
+                var label = lk === 'all' ? '🌍 Все водоёмы' : LOCATIONS[lk].shortName;
+                return '<button type="button" onclick="setSpeciesRecordsLocFilter(\'' + lk + '\')" class="chip ' + (speciesRecordsLocFilter === lk ? 'active' : '') + '">' + label + '</button>';
+            }).join('');
+
+            var myRecs = (state.stats && state.stats.speciesRecords) || {};
+            var filtered = FISH_SPECIES.filter(function(sp) {
+                return speciesRecordsLocFilter === 'all' || sp.loc === speciesRecordsLocFilter;
+            });
+
+            listEl.innerHTML = filtered.map(function(sp) {
+                var locObj = LOCATIONS[sp.loc];
+                var myBest = +(myRecs[sp.id] || 0);
+                var worldObj = cloudSpeciesRecordsCache[sp.id];
+                var worldBest = worldObj ? +(worldObj.weight || 0) : 0;
+                if (myBest > worldBest) {
+                    worldBest = myBest;
+                    worldObj = { weight: myBest, login: state.login, avatar: state.avatar || '🎣', hasCrown: !!state.hasCrown };
+                }
+                var isHolder = worldObj && String(worldObj.login || '').toLowerCase() === String(state.login || '').toLowerCase() && worldBest > 0;
+                var rareBadge = sp.isRareTrophy ? ' <span style="color:#fbbf24;">★</span>' : '';
+
+                var worldHtml = worldBest > 0
+                    ? '<span style="color:#fde047; font-weight:900;">' + worldBest.toFixed(2) + ' кг</span> <span style="color:#cbd5e1;">(' + (worldObj.avatar || '🎣') + ' ' + worldObj.login + (worldObj.hasCrown ? ' 👑' : '') + ')</span>'
+                    : '<span style="color:#64748b;">Рекорд ещё не установлен</span>';
+
+                return '<div class="card" style="padding: 9px 11px; border-color:' + (isHolder ? 'rgba(251,191,36,0.55)' : 'rgba(148,163,184,0.16)') + ';">' +
+                    '<div style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:4px;">' +
+                        '<div style="font-size:13px; font-weight:800; color:#f8fafc;">' + sp.icon + ' ' + sp.name + rareBadge + '</div>' +
+                        '<span style="font-size:10px; color:#94a3b8;">' + (locObj ? locObj.shortName : sp.loc) + '</span>' +
+                    '</div>' +
+                    '<div style="display:flex; justify-content:space-between; align-items:center; font-size:11px; background:rgba(15,23,42,0.72); border-radius:8px; padding:5px 8px;">' +
+                        '<div>Ваш рекорд: <b style="color:' + (myBest > 0 ? '#34d399' : '#64748b') + ';">' + (myBest > 0 ? myBest.toFixed(2) + ' кг' : '—') + '</b></div>' +
+                        '<div>🌍 Мировой: ' + worldHtml + '</div>' +
+                    '</div>' +
+                '</div>';
+            }).join('');
         }
 
         /* ==================== ЛОББИ И СОРЕВНОВАНИЯ НА ВЕС ==================== */
@@ -3253,7 +3447,10 @@
                     castsCount: 0,
                     escapesCount: 0,
                     totalEarned: 0,
+                    trophyCount: 0,
                     caughtSpecies: {},
+                    caughtTrophySpecies: {},
+                    speciesRecords: {},
                     registeredAt: acc.createdAt || Date.now()
                 },
                 journal: [
@@ -3396,6 +3593,9 @@
                 if (typeof state.gearCondition[state.ownedReels[rli]] !== 'number') state.gearCondition[state.ownedReels[rli]] = 100;
             }
             if (!Array.isArray(state.claimedAtlasRewards)) state.claimedAtlasRewards = [];
+            if (!state.stats.speciesRecords || typeof state.stats.speciesRecords !== 'object') state.stats.speciesRecords = {};
+            if (!state.stats.caughtTrophySpecies || typeof state.stats.caughtTrophySpecies !== 'object') state.stats.caughtTrophySpecies = {};
+            if (typeof state.stats.trophyCount !== 'number') state.stats.trophyCount = 0;
             if (!LOCATIONS[state.location] || state.level < (LOCATIONS[state.location].reqLvl || 1)) {
                 state.location = 'pond';
                 state.spotId = 'pond_reeds';
@@ -3492,15 +3692,16 @@
             return getDailyRegularTrophiesCaught(locId) + getDailyRareTrophiesCaught(locId);
         }
 
-        // Вариант 2: Мягкий кап (Diminishing Returns) без жёсткого запрета
+        // Вариант 2: Мягкий кап (Diminishing Returns) + динамический бонус точки по суткам
         function getTrophyDropRates(locId, spotObj, rigObj, chumObj) {
             var regCaught = getDailyRegularTrophiesCaught(locId);
             var rareCaught = getDailyRareTrophiesCaught(locId);
             var houseBonusPct = getHouseTrophyBonusPct(locId);
+            var dynSpotBonus = getDynamicSpotTrophyBonus(locId, spotObj);
 
             var regularChance = 0;
             if (regCaught === 0) {
-                var base = 0.014 + ((spotObj ? spotObj.trophyBonus : 1.0) - 1.0) * 0.025 + ((rigObj ? rigObj.effRodBonus : 0) * 0.00012);
+                var base = 0.014 + (dynSpotBonus - 1.0) * 0.025 + ((rigObj ? rigObj.effRodBonus : 0) * 0.00012);
                 if (chumObj && chumObj.weightBonus > 1.1) base += 0.004;
                 regularChance = Math.min(0.085, Math.max(0.014, base + (houseBonusPct / 100)));
             } else if (regCaught === 1) {
@@ -3512,7 +3713,7 @@
             // Редкий трофей книги: базово в 2 раза ниже 1-го обычного, после поимки мягко падает до 0.15% и 0.03%
             var rareChance = 0;
             if (rareCaught === 0) {
-                var baseRare = (0.014 + ((spotObj ? spotObj.trophyBonus : 1.0) - 1.0) * 0.025 + ((rigObj ? rigObj.effRodBonus : 0) * 0.00012) + (houseBonusPct / 100)) * 0.5;
+                var baseRare = (0.014 + (dynSpotBonus - 1.0) * 0.025 + ((rigObj ? rigObj.effRodBonus : 0) * 0.00012) + (houseBonusPct / 100)) * 0.5;
                 rareChance = Math.min(0.045, Math.max(0.007, baseRare));
             } else if (rareCaught === 1) {
                 rareChance = 0.0015;
@@ -3531,6 +3732,129 @@
         function consumeDailyRareTrophy(locId) {
             ensureDailyTrophyQuota();
             state.dailyTrophyState.caughtRare[locId] = (state.dailyTrophyState.caughtRare[locId] || 0) + 1;
+        }
+
+        /* ==================== ДИНАМИЧЕСКИЙ БОНУС ТОЧЕК ПО СУТКАМ ==================== */
+        function getDynamicSpotTrophyBonus(locId, spotObj) {
+            var locObj = LOCATIONS[locId];
+            if (!locObj || !Array.isArray(locObj.spots) || locObj.spots.length === 0) {
+                return spotObj ? (spotObj.trophyBonus || 1.0) : 1.0;
+            }
+            var spots = locObj.spots;
+            var idx = -1;
+            for (var i = 0; i < spots.length; i++) {
+                if (spotObj && spots[i].id === spotObj.id) { idx = i; break; }
+            }
+            if (idx === -1) return spotObj ? (spotObj.trophyBonus || 1.0) : 1.0;
+
+            var day = getGameDayNumber();
+            var hash = day * 7 + locId.length * 13;
+            for (var c = 0; c < locId.length; c++) {
+                hash = (hash * 31 + locId.charCodeAt(c)) % 100000;
+            }
+            var shift = hash % spots.length;
+            var mappedIdx = (idx + shift) % spots.length;
+            return spots[mappedIdx].trophyBonus || 1.0;
+        }
+
+        /* ==================== АЛЬМАНАХ РЫБ И СУТОЧНАЯ СМЕНА ПРЕДПОЧТЕНИЙ ==================== */
+        function getDailyFishPreferences(speciesObj) {
+            var day = getGameDayNumber();
+            var seed = day * 17 + 29;
+            for (var i = 0; i < speciesObj.id.length; i++) {
+                seed = (seed * 37 + speciesObj.id.charCodeAt(i)) % 100000;
+            }
+            var allBaits = SHOP_GEAR.baits;
+            var baitOfDayObj = allBaits[seed % allBaits.length];
+
+            var locObj = LOCATIONS[speciesObj.loc];
+            var spots = (locObj && locObj.spots) ? locObj.spots : [];
+            var bestSpotObj = spots.length > 0 ? spots[(seed * 3 + 1) % spots.length] : null;
+
+            return {
+                baitId: baitOfDayObj ? baitOfDayObj.id : speciesObj.baits[0],
+                baitObj: baitOfDayObj,
+                spotId: bestSpotObj ? bestSpotObj.id : '',
+                spotObj: bestSpotObj
+            };
+        }
+
+        function openAlmanacModal() {
+            if (state && state.location) almanacLocFilter = state.location;
+            fetchCloudSpeciesRecords(false);
+            renderAlmanacModal();
+            document.getElementById('modal-almanac').classList.remove('hidden');
+        }
+
+        function closeAlmanacModal() {
+            document.getElementById('modal-almanac').classList.add('hidden');
+        }
+
+        function setAlmanacLocFilter(locId) {
+            almanacLocFilter = locId;
+            renderAlmanacModal();
+        }
+
+        function renderAlmanacModal() {
+            if (!state) return;
+            var subEl = document.getElementById('almanac-day-subtitle');
+            if (subEl) subEl.textContent = 'Игровые сутки №' + (getGameDayNumber() + 1) + ' • Вкус дня (×2.15) и лучшая точка (×1.45) меняются в 00:00';
+
+            var chipsEl = document.getElementById('almanac-loc-chips');
+            var listEl = document.getElementById('almanac-content-list');
+            if (!chipsEl || !listEl) return;
+
+            var locKeys = Object.keys(LOCATIONS);
+            chipsEl.innerHTML = locKeys.map(function(lk) {
+                return '<button type="button" onclick="setAlmanacLocFilter(\'' + lk + '\')" class="chip ' + (almanacLocFilter === lk ? 'active' : '') + '">' + LOCATIONS[lk].shortName + '</button>';
+            }).join('');
+
+            var periodNames = { morning: 'Утро', day: 'День', evening: 'Вечер', night: 'Ночь' };
+            var caughtMap = (state.stats && state.stats.caughtSpecies) || {};
+            var myRecs = (state.stats && state.stats.speciesRecords) || {};
+            var list = FISH_SPECIES.filter(function(f) { return f.loc === almanacLocFilter; });
+
+            listEl.innerHTML = list.map(function(f) {
+                var prefs = getDailyFishPreferences(f);
+                var pStr = f.periods.map(function(pid) { return periodNames[pid] || pid; }).join(', ');
+                var dietStr = f.baits.map(function(bid) {
+                    var bo = findById(SHOP_GEAR.baits, bid);
+                    return bo ? (bo.icon + ' ' + bo.name) : bid;
+                }).join(', ');
+                var suitableChums = SHOP_GEAR.chums.filter(function(ch) {
+                    return Array.isArray(ch.targetSpecies) && ch.targetSpecies.indexOf(f.id) !== -1;
+                }).map(function(ch) { return ch.name; });
+                var chumStr = suitableChums.length > 0 ? suitableChums.join(', ') : 'База «Сухари и Жмых»';
+
+                var myCnt = caughtMap[f.id] || 0;
+                var myBest = +(myRecs[f.id] || 0);
+                var worldObj = cloudSpeciesRecordsCache[f.id];
+                var worldBest = worldObj ? +(worldObj.weight || 0) : 0;
+                if (myBest > worldBest) {
+                    worldBest = myBest;
+                    worldObj = { weight: myBest, login: state.login };
+                }
+                var rareTag = f.isRareTrophy ? ' <span style="color:#fbbf24; font-weight:900;">[РЕДКИЙ ТРОФЕЙ]</span>' : '';
+
+                return '<div style="background:rgba(30,41,59,0.88); border:1px solid ' + (f.isRareTrophy ? 'rgba(251,191,36,0.4)' : 'rgba(148,163,184,0.18)') + '; border-radius:12px; padding:10px; font-size:11px;">' +
+                    '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">' +
+                        '<div style="font-size:13px; font-weight:900; color:#f8fafc;">' + f.icon + ' ' + f.name + rareTag + '</div>' +
+                        '<span style="color:#38bdf8; font-weight:800;">' + f.minW + '–' + f.maxW + ' кг</span>' +
+                    '</div>' +
+                    '<div style="color:#cbd5e1; margin-bottom:6px; line-height:1.35;">' + f.desc + '</div>' +
+                    '<div style="display:grid; grid-template-columns:1fr; gap:3px; background:rgba(15,23,42,0.72); border-radius:9px; padding:7px 8px; margin-bottom:6px;">' +
+                        '<div>⏰ <b>Время суток:</b> ' + pStr + '</div>' +
+                        '<div>📍 <b>Лучшая точка дня (×1.45):</b> <span style="color:#6ee7b7; font-weight:800;">' + (prefs.spotObj ? prefs.spotObj.name : 'Любая') + '</span></div>' +
+                        '<div>✨ <b>Вкус дня (×2.15):</b> <span style="color:#fde047; font-weight:800;">' + (prefs.baitObj ? (prefs.baitObj.icon + ' ' + prefs.baitObj.name) : '—') + '</span></div>' +
+                        '<div>🪱 <b>Обычный рацион:</b> ' + dietStr + '</div>' +
+                        '<div>🌾 <b>Подходящая прикормка (×2.8):</b> <span style="color:#c084fc;">' + chumStr + '</span></div>' +
+                    '</div>' +
+                    '<div style="display:flex; justify-content:space-between; align-items:center; font-size:11px;">' +
+                        '<span>🧺 Ваш улов: <b style="color:#34d399;">' + myCnt + ' шт.</b> (рек: <b>' + (myBest > 0 ? myBest.toFixed(2) + ' кг' : '—') + '</b>)</span>' +
+                        '<span>🌍 Рекорд игроков: <b style="color:#fbbf24;">' + (worldBest > 0 ? (worldBest.toFixed(2) + ' кг — ' + worldObj.login) : 'Нет') + '</b></span>' +
+                    '</div>' +
+                '</div>';
+            }).join('');
         }
 
         function advanceGameTime(mins) {
@@ -3995,7 +4319,7 @@
             renderAll();
 
             var weather = WEATHERS[state.weatherIdx];
-            var chumMult = chumObj ? chumObj.biteBonus : 1.0;
+            var chumMult = chumObj ? chumObj.biteBonus : 0.78;
             var waitMs = Math.max(1600, Math.round((2600 + Math.random() * 3400) / (weather.biteMult * chumMult)));
 
             document.getElementById('water-status-pill').innerHTML = '🌊 Поплавок на воде... Ждём поклёвку...';
@@ -4008,10 +4332,47 @@
         function triggerBite(chumObj) {
             if (fishingPhase !== 'waiting') return;
 
+            // ~5.5% шанс зацепить находку со дна или сверхредкий сундук с дублонами
+            if (Math.random() < 0.055) {
+                var totJunkW = JUNK_ARTIFACTS.reduce(function(acc, it) { return acc + it.weightChance; }, 0);
+                var jRoll = Math.random() * totJunkW;
+                var pickedJunk = JUNK_ARTIFACTS[0];
+                for (var ji = 0; ji < JUNK_ARTIFACTS.length; ji++) {
+                    jRoll -= JUNK_ARTIFACTS[ji].weightChance;
+                    if (jRoll <= 0) { pickedJunk = JUNK_ARTIFACTS[ji]; break; }
+                }
+
+                resetFishingState(false);
+                state.money += pickedJunk.money;
+                state.stats.totalEarned = (state.stats.totalEarned || 0) + pickedJunk.money;
+                if (pickedJunk.hooks > 0) {
+                    state.goldenHooks = (state.goldenHooks || 0) + pickedJunk.hooks;
+                }
+
+                if (pickedJunk.isChest) {
+                    playSfx('trophy');
+                    launchTrophyFireworks(true);
+                    pushJournal('👑 <b>НЕВЕРОЯТНАЯ НАХОДКА СО ДНА!</b> Вы вытащили <b>' + pickedJunk.name + '</b> (' + pickedJunk.weight.toFixed(2) + ' кг) и получили <b>+50 000 ₽</b> и <b>+15 🪝</b>!');
+                    showToast('👑 ЗАТОНУВШИЙ СУНДУК С ДУБЛОНАМИ! +50 000 ₽ и +15 🪝!', '#fbbf24');
+                    var locCur = LOCATIONS[state.location];
+                    announceTrophyToGlobalChat({
+                        species: { icon: '💰', name: '👑 Затонувший сундук с дублонами (+50 000 ₽ + 15 🪝)', isRareTrophy: true },
+                        weight: pickedJunk.weight
+                    }, locCur);
+                } else {
+                    playSfx('splash');
+                    pushJournal('🪝 <b>Зацеп со дна:</b> вы вытащили <b>' + pickedJunk.icon + ' ' + pickedJunk.name + '</b> (' + pickedJunk.weight.toFixed(2) + ' кг) — сдано в утиль за <b>+' + pickedJunk.money + ' ₽</b>.');
+                    showToast(pickedJunk.icon + ' Находка со дна: ' + pickedJunk.name + ' (+' + pickedJunk.money + ' ₽)', '#94a3b8');
+                }
+                persistState();
+                renderAll();
+                return;
+            }
+
             var period = getTimePeriod(state.minutes).id;
             var rig = getRigSummary();
             var spot = findById(LOCATIONS[state.location].spots, state.spotId) || LOCATIONS[state.location].spots[0];
-            var houseBonusPct = getHouseTrophyBonusPct(state.location);
+            var dynSpotBonus = getDynamicSpotTrophyBonus(state.location, spot);
 
             var candidates = FISH_SPECIES.filter(function(f) {
                 return f.loc === state.location && f.periods.indexOf(period) !== -1;
@@ -4022,6 +4383,19 @@
                 pushJournal('💤 Сейчас на этой глубине тихо — рыба ушла на стоянку. Проверьте <b>📡 Косяки</b>.');
                 renderAll();
                 return;
+            }
+
+            function calcSpeciesWeight(sp, baseMatch, baseOther) {
+                var prefs = getDailyFishPreferences(sp);
+                var baitMatch = sp.baits.indexOf(state.selectedBait) !== -1;
+                var isDailyBait = (prefs.baitId === state.selectedBait);
+                var w = (baitMatch || isDailyBait) ? baseMatch : baseOther;
+                if (isDailyBait) w *= 2.15;
+                if (prefs.spotId === state.spotId) w *= 1.45;
+                if (chumObj && Array.isArray(chumObj.targetSpecies) && chumObj.targetSpecies.indexOf(sp.id) !== -1) {
+                    w *= 2.8;
+                }
+                return w;
             }
 
             var rareCandidates = candidates.filter(function(f) { return !!f.isRareTrophy; });
@@ -4041,8 +4415,7 @@
 
             if (spawnRareTrophy) {
                 var rWeighted = rareCandidates.map(function(sp) {
-                    var bMatch = sp.baits.indexOf(state.selectedBait) !== -1;
-                    return { species: sp, w: bMatch ? 8 : 1.0 };
+                    return { species: sp, w: calcSpeciesWeight(sp, 8, 1.0) };
                 });
                 var rTot = rWeighted.reduce(function(acc, x) { return acc + x.w; }, 0);
                 var rRoll = Math.random() * rTot;
@@ -4056,8 +4429,7 @@
                 var weighted = [];
                 for (var i = 0; i < regularCandidates.length; i++) {
                     var sp = regularCandidates[i];
-                    var baitMatch = sp.baits.indexOf(state.selectedBait) !== -1;
-                    var w = baitMatch ? 12 : 1.2;
+                    var w = calcSpeciesWeight(sp, 12, 1.2);
                     if (sp.maxW < rig.hook.minW * 0.7) w *= 0.15;
                     weighted.push({ species: sp, w: w });
                 }
@@ -4077,7 +4449,7 @@
             } else if (spawnRegularTrophy) {
                 ratio = 0.82 + Math.random() * 0.18;
             } else {
-                var weightBonus = (chumObj ? chumObj.weightBonus : 1.0) * spot.trophyBonus;
+                var weightBonus = (chumObj ? chumObj.weightBonus : 1.0) * dynSpotBonus;
                 var rawRoll = Math.pow(Math.random(), 2.95 / Math.min(1.45, weightBonus));
                 ratio = Math.min(0.78, rawRoll * 0.79);
             }
@@ -4254,7 +4626,12 @@
                 state.stats.bestFishName = caught.species.name + ' (' + caught.weight.toFixed(2) + ' кг)';
             }
 
+            submitSpeciesRecordToCloud(caught.species, caught.weight);
+
             if (caught.rarityInfo.isTrophy) {
+                state.stats.trophyCount = (state.stats.trophyCount || 0) + 1;
+                if (!state.stats.caughtTrophySpecies) state.stats.caughtTrophySpecies = {};
+                state.stats.caughtTrophySpecies[caught.species.id] = (state.stats.caughtTrophySpecies[caught.species.id] || 0) + 1;
                 if (caught.rarityInfo.id === 'rare_book' || caught.species.isRareTrophy) {
                     consumeDailyRareTrophy(state.location);
                 } else {
@@ -4442,16 +4819,29 @@
             document.getElementById('modal-atlas').classList.add('hidden');
         }
 
+        function isRegularSpeciesTrophyCaught(speciesObj) {
+            if (!state || !state.stats) return false;
+            var trophyMap = state.stats.caughtTrophySpecies || {};
+            if ((trophyMap[speciesObj.id] || 0) > 0) return true;
+            var myRecs = state.stats.speciesRecords || {};
+            var bestW = +(myRecs[speciesObj.id] || 0);
+            var thresholdW = speciesObj.minW + (speciesObj.maxW - speciesObj.minW) * 0.82;
+            return bestW >= thresholdW - 0.001;
+        }
+
         function claimAtlasBookReward(locId) {
             var locObj = LOCATIONS[locId];
             if (!locObj || !state) return;
             if (state.claimedAtlasRewards.indexOf(locId) !== -1) return;
 
             var rareList = FISH_SPECIES.filter(function(f) { return f.loc === locId && f.isRareTrophy; });
+            var regularList = FISH_SPECIES.filter(function(f) { return f.loc === locId && !f.isRareTrophy; });
             var caughtMap = (state.stats && state.stats.caughtSpecies) || {};
-            var allDone = rareList.every(function(f) { return (caughtMap[f.id] || 0) > 0; });
-            if (!allDone) {
-                showToast('Сначала поймайте все 3 редких трофея этого водоёма!', '#fbbf24');
+            var allRareDone = rareList.every(function(f) { return (caughtMap[f.id] || 0) > 0; });
+            var allRegTrophyDone = regularList.every(function(f) { return isRegularSpeciesTrophyCaught(f); });
+
+            if (!allRareDone || !allRegTrophyDone) {
+                showToast('Соберите все 3 редких трофея и по 1 трофею (🏆/👑) каждого вида водоёма!', '#fbbf24');
                 return;
             }
 
@@ -4464,7 +4854,7 @@
                 state.ownedRods.push(rew.rodId);
             }
             launchTrophyFireworks(true);
-            pushJournal('📖 <b>КНИЖКА ВОДОЁМА ЗАКРЫТА («' + locObj.shortName + '»)!</b> Награда: ' + rew.label);
+            pushJournal('📖 <b>КНИЖКА ВОДОЁМА ПОЛНОСТЬЮ ЗАКРЫТА («' + locObj.shortName + '»)!</b> Награда: ' + rew.label);
             showToast('📖 Награда книжки «' + locObj.shortName + '» получена!', '#fbbf24');
             persistState();
             renderAtlasModal();
@@ -4480,34 +4870,57 @@
             listEl.innerHTML = locKeys.map(function(lk) {
                 var loc = LOCATIONS[lk];
                 var rareFish = FISH_SPECIES.filter(function(f) { return f.loc === lk && f.isRareTrophy; });
-                var foundCount = rareFish.filter(function(f) { return (caughtMap[f.id] || 0) > 0; }).length;
-                var isClaimed = state.claimedAtlasRewards.indexOf(lk) !== -1;
-                var canClaim = (foundCount >= rareFish.length) && !isClaimed;
+                var regularFish = FISH_SPECIES.filter(function(f) { return f.loc === lk && !f.isRareTrophy; });
 
-                var fishHtml = rareFish.map(function(f) {
+                var rareFoundCount = rareFish.filter(function(f) { return (caughtMap[f.id] || 0) > 0; }).length;
+                var regTrophyCount = regularFish.filter(function(f) { return isRegularSpeciesTrophyCaught(f); }).length;
+
+                var totalRequired = rareFish.length + regularFish.length;
+                var totalFound = rareFoundCount + regTrophyCount;
+
+                var isClaimed = state.claimedAtlasRewards.indexOf(lk) !== -1;
+                var canClaim = (totalFound >= totalRequired) && !isClaimed;
+
+                var rareHtml = rareFish.map(function(f) {
                     var cnt = caughtMap[f.id] || 0;
                     var isCaught = cnt > 0;
-                    return '<div style="display:flex; justify-content:space-between; align-items:center; background:rgba(15,23,42,0.75); border-radius:8px; padding:5px 8px; font-size:11px; border:1px solid ' + (isCaught ? 'rgba(52,211,153,0.4)' : 'rgba(148,163,184,0.12)') + ';">' +
+                    return '<div style="display:flex; justify-content:space-between; align-items:center; background:rgba(15,23,42,0.78); border-radius:8px; padding:5px 8px; font-size:11px; border:1px solid ' + (isCaught ? 'rgba(251,191,36,0.45)' : 'rgba(148,163,184,0.12)') + ';">' +
                         '<div>' +
                             '<span style="font-size:14px;">' + (isCaught ? f.icon : '❓') + '</span> ' +
-                            '<b style="color:' + (isCaught ? '#6ee7b7' : '#94a3b8') + ';">' + f.name + '</b> ' +
+                            '<b style="color:' + (isCaught ? '#fde047' : '#94a3b8') + ';">' + f.name + '</b> ' +
                             '<span style="color:#64748b;">(' + f.minW + '–' + f.maxW + ' кг)</span>' +
                         '</div>' +
                         '<span style="font-weight:800; color:' + (isCaught ? '#34d399' : '#64748b') + ';">' + (isCaught ? ('✅ ' + cnt + ' шт.') : 'Не пойман') + '</span>' +
                     '</div>';
                 }).join('');
 
+                var regHtml = regularFish.map(function(f) {
+                    var isTrophyDone = isRegularSpeciesTrophyCaught(f);
+                    var trophyThreshold = +(f.minW + (f.maxW - f.minW) * 0.82).toFixed(2);
+                    return '<div style="display:flex; justify-content:space-between; align-items:center; background:rgba(15,23,42,0.62); border-radius:7px; padding:4px 8px; font-size:10.5px; border:1px solid ' + (isTrophyDone ? 'rgba(52,211,153,0.38)' : 'rgba(148,163,184,0.1)') + ';">' +
+                        '<div>' +
+                            '<span>' + (isTrophyDone ? f.icon : '🐟') + '</span> ' +
+                            '<span style="color:' + (isTrophyDone ? '#6ee7b7' : '#cbd5e1') + '; font-weight:700;">' + f.name + '</span> ' +
+                            '<span style="color:#64748b;">(трофей от ' + trophyThreshold + ' кг)</span>' +
+                        '</div>' +
+                        '<span style="font-weight:800; color:' + (isTrophyDone ? '#34d399' : '#64748b') + ';">' + (isTrophyDone ? '🏆 Пойман' : 'Нет трофея') + '</span>' +
+                    '</div>';
+                }).join('');
+
                 return '<div style="background:rgba(30,41,59,0.85); border:1px solid ' + (isClaimed ? '#34d399' : (canClaim ? '#fbbf24' : 'rgba(148,163,184,0.2)')) + '; border-radius:13px; padding:10px;">' +
                     '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">' +
                         '<div style="font-size:13px; font-weight:900; color:#f8fafc;">' + loc.name + '</div>' +
-                        '<span style="font-size:11px; font-weight:900; color:#fbbf24;">' + foundCount + ' / ' + rareFish.length + '</span>' +
+                        '<span style="font-size:11px; font-weight:900; color:#fbbf24;">' + totalFound + ' / ' + totalRequired + '</span>' +
                     '</div>' +
-                    '<div style="display:flex; flex-direction:column; gap:4px; margin-bottom:7px;">' + fishHtml + '</div>' +
-                    '<div style="font-size:11px; color:#fde68a; margin-bottom:6px;">🎁 Награда за сбор всех 3: <b>' + loc.atlasReward.label + '</b></div>' +
+                    '<div style="font-size:10px; font-weight:800; color:#fde047; margin-bottom:4px;">🎆 Редкие трофеи книги (' + rareFoundCount + '/' + rareFish.length + '):</div>' +
+                    '<div style="display:flex; flex-direction:column; gap:4px; margin-bottom:7px;">' + rareHtml + '</div>' +
+                    '<div style="font-size:10px; font-weight:800; color:#38bdf8; margin-bottom:4px;">🏆 Обычные трофеи видов (' + regTrophyCount + '/' + regularFish.length + '):</div>' +
+                    '<div style="display:flex; flex-direction:column; gap:3px; margin-bottom:7px;">' + regHtml + '</div>' +
+                    '<div style="font-size:11px; color:#fde68a; margin-bottom:6px;">🎁 Награда за полное закрытие книжки: <b>' + loc.atlasReward.label + '</b></div>' +
                     (isClaimed
                         ? '<div style="font-size:11px; font-weight:800; color:#34d399; text-align:center;">✅ Книжка полностью собрана, награда получена!</div>'
                         : '<button type="button" onclick="claimAtlasBookReward(\'' + lk + '\')" class="btn ' + (canClaim ? 'btn-gold' : 'btn-secondary') + ' btn-sm" style="width:100%;" ' + (canClaim ? '' : 'disabled') + '>' +
-                            (canClaim ? '🏆 Забрать награду книжки!' : 'Поймайте все 3 редких трофея') +
+                            (canClaim ? '🏆 Забрать награду книжки!' : 'Соберите все редкие и видовые трофеи') +
                           '</button>') +
                 '</div>';
             }).join('');
@@ -5352,10 +5765,12 @@
 
             var curLoc = LOCATIONS[state.location];
             var curSpot = findById(curLoc.spots, state.spotId) || curLoc.spots[0];
-            document.getElementById('spot-caption-badge').textContent = '📍 ' + curSpot.name + ' • Шанс трофея x' + curSpot.trophyBonus.toFixed(2);
+            var curDynBonus = getDynamicSpotTrophyBonus(state.location, curSpot);
+            document.getElementById('spot-caption-badge').textContent = '📍 ' + curSpot.name + ' • Трофеи дня x' + curDynBonus.toFixed(2);
 
             document.getElementById('spot-chips-row').innerHTML = curLoc.spots.map(function(sp) {
-                return '<button type="button" onclick="selectSpot(\'' + sp.id + '\')" class="chip ' + (sp.id === state.spotId ? 'active' : '') + '">' + sp.name + '</button>';
+                var spDyn = getDynamicSpotTrophyBonus(state.location, sp);
+                return '<button type="button" onclick="selectSpot(\'' + sp.id + '\')" class="chip ' + (sp.id === state.spotId ? 'active' : '') + '">' + sp.name + ' <span style="color:#fde047;">[x' + spDyn.toFixed(2) + ']</span></button>';
             }).join('');
 
             var activeSpecies = FISH_SPECIES.filter(function(f) {
@@ -5724,6 +6139,7 @@
                             totalWeight: +(s.totalWeight || 0).toFixed(2),
                             bestWeight: +(s.bestWeight || 0).toFixed(2),
                             bestFishName: s.bestFishName || 'Пока нет',
+                            trophyCount: s.trophyCount || 0,
                             playSeconds: s.playSeconds || 0
                         };
                     }
@@ -5750,6 +6166,7 @@
                 totalWeight: +(state.stats.totalWeight || 0).toFixed(2),
                 bestWeight: +(state.stats.bestWeight || 0).toFixed(2),
                 bestFishName: state.stats.bestFishName || 'Пока нет',
+                trophyCount: state.stats.trophyCount || 0,
                 playSeconds: state.stats.playSeconds || 0,
                 lastSeen: Date.now()
             };
@@ -5769,6 +6186,7 @@
                 var isMe = p.login.toLowerCase() === state.login.toLowerCase();
                 var crown = p.hasCrown ? ' 👑' : '';
                 var metricText = 'Рекорд: ' + (p.bestWeight || 0).toFixed(2) + ' кг';
+                if (leaderSortBy === 'trophyCount') metricText = 'Трофеев: ' + (p.trophyCount || 0) + ' шт.';
                 if (leaderSortBy === 'level') metricText = 'Ур. ' + (p.level || 1) + ' (' + (p.xp || 0) + ' XP)';
                 if (leaderSortBy === 'caughtCount') metricText = 'Поймано: ' + (p.caughtCount || 0) + ' шт.';
                 if (leaderSortBy === 'money') metricText = 'Капитал: ' + (p.money || 0).toLocaleString('ru-RU') + ' ₽';
@@ -5808,9 +6226,9 @@
                 '<div style="display:grid; grid-template-columns:1fr 1fr; gap:7px; font-size:12px;">' +
                     '<div class="card">💰 Баланс: <b>' + (p.money || 0).toLocaleString('ru-RU') + ' ₽</b></div>' +
                     '<div class="card">🐟 Поймано: <b>' + (p.caughtCount || 0) + ' шт.</b></div>' +
+                    '<div class="card">🏆 Поймано трофеев: <b style="color:#fbbf24;">' + (p.trophyCount || 0) + ' шт.</b></div>' +
                     '<div class="card">⚖️ Общий вес: <b>' + (p.totalWeight || 0).toFixed(2) + ' кг</b></div>' +
-                    '<div class="card">⏱️ В игре: <b>' + formatPlayTime(p.playSeconds || 0) + '</b></div>' +
-                    '<div class="card" style="grid-column:span 2;">🏆 Рекордный трофей: <b style="color:#fbbf24;">' + (p.bestFishName || 'Пока нет') + '</b></div>' +
+                    '<div class="card" style="grid-column:span 2;">⏱️ В игре: <b>' + formatPlayTime(p.playSeconds || 0) + '</b> • Рекорд: <b style="color:#fbbf24;">' + (p.bestFishName || 'Пока нет') + '</b></div>' +
                 '</div>';
             document.getElementById('modal-player-dossier').classList.remove('hidden');
         }
@@ -5864,10 +6282,11 @@
             var s = state.stats;
             document.getElementById('profile-stats-grid').innerHTML =
                 '<div class="card">🐟 Поймано: <b>' + (s.caughtCount || 0) + ' шт.</b></div>' +
+                '<div class="card">🏆 Поймано трофеев: <b style="color:#fbbf24;">' + (s.trophyCount || 0) + ' шт.</b></div>' +
                 '<div class="card">⚖️ Общий вес: <b>' + (s.totalWeight || 0).toFixed(2) + ' кг</b></div>' +
                 '<div class="card">🎣 Забросов: <b>' + (s.castsCount || 0) + '</b></div>' +
                 '<div class="card">⏱️ В игре: <b>' + formatPlayTime(s.playSeconds || 0) + '</b></div>' +
-                '<div class="card" style="grid-column:span 2;">🏆 Рекорд: <b style="color:#fbbf24;">' + (s.bestFishName || 'Пока нет') + '</b></div>';
+                '<div class="card">👑 Рекорд: <b style="color:#fbbf24;">' + (s.bestFishName || 'Пока нет') + '</b></div>';
 
             document.getElementById('promo-status-hint').textContent = '';
             document.getElementById('modal-profile').classList.remove('hidden');
