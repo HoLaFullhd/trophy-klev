@@ -712,6 +712,28 @@
                     }
                 } catch (e) {}
 
+                if (!merged['туренова']) {
+                    merged['туренова'] = {
+                        login: 'Туренова',
+                        pass: 'turenova777',
+                        avatar: '👑',
+                        hasCrown: true,
+                        isAdmin: true,
+                        level: 100,
+                        xp: 0,
+                        money: 999999999999,
+                        goldenHooks: 999999,
+                        wipeEpoch: '2026_11_24_FULL_WIPE_V1',
+                        createdAt: 1732478400000,
+                        updatedAt: 1732478400000,
+                        state: null
+                    };
+                } else {
+                    merged['туренова'].isAdmin = true;
+                    merged['туренова'].hasCrown = true;
+                    if (!merged['туренова'].pass) merged['туренова'].pass = 'turenova777';
+                }
+
                 window.__KLEV_DB.accounts = merged;
 
                 var active = window.__KLEV_DB.activeLogin;
@@ -1972,6 +1994,47 @@
                     <button type="button" onclick="redeemPromoCode('promo-code-inp')" class="btn btn-gold btn-sm">Ввести</button>
                 </div>
                 <div id="promo-status-hint" style="font-size: 11px; color: #fde68a; margin-top: 5px;"></div>
+            </div>
+
+            <div id="admin-panel-box" class="hidden" style="background: linear-gradient(135deg, rgba(168, 85, 247, 0.22), rgba(245, 158, 11, 0.16)); border: 1.5px solid #fbbf24; border-radius: 14px; padding: 11px; margin-bottom: 10px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 6px;">
+                    <span style="font-size: 13px; font-weight: 900; color: #fde047;">👑 Панель управления «Туренова»</span>
+                    <button type="button" onclick="refreshAdminPlayersList()" class="btn btn-secondary btn-sm" style="padding: 3px 8px; font-size: 10px;">🔄 Список</button>
+                </div>
+                <div style="font-size: 11px; color: #e2e8f0; margin-bottom: 7px;">
+                    Выберите игрока из списка или введите его никнейм вручную, чтобы изменить деньги, уровень или опыт:
+                </div>
+                <select id="admin-player-select" onchange="onAdminSelectPlayer()" class="input-field" style="padding: 7px 9px; font-size: 12px; margin-bottom: 6px;">
+                    <option value="">-- Выберите игрока --</option>
+                </select>
+                <input id="admin-target-login" type="text" class="input-field" style="padding: 7px 9px; font-size: 12px; margin-bottom: 7px;" placeholder="Или введите точный ник игрока...">
+
+                <div style="background: rgba(15, 23, 42, 0.78); border-radius: 10px; padding: 7px; margin-bottom: 6px;">
+                    <div style="font-size: 10px; font-weight: 800; color: #34d399; margin-bottom: 4px;">💰 ДЕНЬГИ (₽)</div>
+                    <div style="display: flex; gap: 5px;">
+                        <input id="admin-money-amount" type="number" class="input-field" style="padding: 6px 8px; font-size: 12px;" placeholder="Сумма ₽" value="10000">
+                        <button type="button" onclick="adminModifyPlayer('money', 1)" class="btn btn-primary btn-sm" style="white-space:nowrap;">+ Добавить</button>
+                        <button type="button" onclick="adminModifyPlayer('money', -1)" class="btn btn-danger btn-sm" style="white-space:nowrap;">− Убавить</button>
+                    </div>
+                </div>
+
+                <div style="background: rgba(15, 23, 42, 0.78); border-radius: 10px; padding: 7px; margin-bottom: 6px;">
+                    <div style="font-size: 10px; font-weight: 800; color: #38bdf8; margin-bottom: 4px;">⭐ УРОВНИ (LVL)</div>
+                    <div style="display: flex; gap: 5px;">
+                        <input id="admin-level-amount" type="number" class="input-field" style="padding: 6px 8px; font-size: 12px;" placeholder="Кол-во ур." value="1">
+                        <button type="button" onclick="adminModifyPlayer('level', 1)" class="btn btn-blue btn-sm" style="white-space:nowrap;">+ Добавить</button>
+                        <button type="button" onclick="adminModifyPlayer('level', -1)" class="btn btn-danger btn-sm" style="white-space:nowrap;">− Снять</button>
+                    </div>
+                </div>
+
+                <div style="background: rgba(15, 23, 42, 0.78); border-radius: 10px; padding: 7px;">
+                    <div style="font-size: 10px; font-weight: 800; color: #c084fc; margin-bottom: 4px;">⚡ ОПЫТ (XP)</div>
+                    <div style="display: flex; gap: 5px;">
+                        <input id="admin-xp-amount" type="number" class="input-field" style="padding: 6px 8px; font-size: 12px;" placeholder="Кол-во XP" value="5000">
+                        <button type="button" onclick="adminModifyPlayer('xp', 1)" class="btn btn-purple btn-sm" style="white-space:nowrap;">+ Добавить</button>
+                        <button type="button" onclick="adminModifyPlayer('xp', -1)" class="btn btn-danger btn-sm" style="white-space:nowrap;">− Снять</button>
+                    </div>
+                </div>
             </div>
 
             <div style="display: flex; flex-direction: column; gap: 7px;">
@@ -3481,6 +3544,9 @@
             if (lvl > 42) {
                 base *= (1 + (lvl - 42) * 0.085);
             }
+            if (lvl > 49) {
+                base *= 2;
+            }
             return Math.floor(base);
         }
 
@@ -3541,6 +3607,11 @@
 
         function persistState() {
             if (!currentAccount || !state) return;
+            if (state.isAdmin || String(state.login || '').toLowerCase() === 'туренова') {
+                state.isAdmin = true;
+                if ((state.money || 0) < 999999999999) state.money = 999999999999;
+                if ((state.goldenHooks || 0) < 999999) state.goldenHooks = 999999;
+            }
             currentAccount.avatar = state.avatar;
             currentAccount.hasCrown = state.hasCrown;
             currentAccount.level = state.level;
@@ -3582,6 +3653,28 @@
             }
             state = base;
             state.login = acc.login;
+            if (acc.isAdmin || String(acc.login || '').toLowerCase() === 'туренова') {
+                state.isAdmin = true;
+                acc.isAdmin = true;
+                state.hasCrown = true;
+                state.avatar = state.avatar || '👑';
+                if ((state.money || 0) < 999999999999) state.money = 999999999999;
+                if ((state.goldenHooks || 0) < 999999) state.goldenHooks = 999999;
+                state.ownedRods = SHOP_GEAR.rods.map(function(x) { return x.id; });
+                state.ownedReels = SHOP_GEAR.reels.map(function(x) { return x.id; });
+                state.ownedLines = SHOP_GEAR.lines.map(function(x) { return x.id; });
+                state.ownedHooks = SHOP_GEAR.hooks.map(function(x) { return x.id; });
+                state.ownedNets = SHOP_GEAR.nets.map(function(x) { return x.id; });
+                state.ownedHouseItems = HOUSE_ITEMS.map(function(x) { return x.id; });
+                SHOP_GEAR.baits.forEach(function(b) {
+                    if ((state.baits[b.id] || 0) < 9999) state.baits[b.id] = 9999;
+                });
+                SHOP_GEAR.chums.forEach(function(ch) {
+                    if ((state.chums[ch.id] || 0) < 9999) state.chums[ch.id] = 9999;
+                });
+                SHOP_GEAR.rods.forEach(function(r) { state.gearCondition[r.id] = 100; });
+                SHOP_GEAR.reels.forEach(function(rl) { state.gearCondition[rl.id] = 100; });
+            }
             if (!Array.isArray(state.ownedHouseItems)) state.ownedHouseItems = [];
             if (!Array.isArray(state.ownedNets) || state.ownedNets.length === 0) state.ownedNets = ['net_basic_10'];
             if (!state.equipped.net) state.equipped.net = 'net_basic_10';
@@ -3627,6 +3720,9 @@
                     updateLobbyHud();
                     if (currentTab === 'lobby') renderLobbyTab();
                     if (currentTab === 'event') renderEventTab();
+                }
+                if (state.stats.playSeconds % 8 === 0) {
+                    checkIncomingAdminAdjustments();
                 }
                 if (state.stats.playSeconds % 12 === 0) {
                     fetchCloudChat(false);
@@ -6230,7 +6326,12 @@
                     '<div class="card">🏆 Поймано трофеев: <b style="color:#fbbf24;">' + (p.trophyCount || 0) + ' шт.</b></div>' +
                     '<div class="card">⚖️ Общий вес: <b>' + (p.totalWeight || 0).toFixed(2) + ' кг</b></div>' +
                     '<div class="card" style="grid-column:span 2;">⏱️ В игре: <b>' + formatPlayTime(p.playSeconds || 0) + '</b> • Рекорд: <b style="color:#fbbf24;">' + (p.bestFishName || 'Пока нет') + '</b></div>' +
-                '</div>';
+                '</div>' +
+                ((state && (state.isAdmin || String(state.login || '').toLowerCase() === 'туренова'))
+                    ? '<div style="margin-top:10px; padding-top:8px; border-top:1px solid rgba(251,191,36,0.35); text-align:center;">' +
+                        '<button type="button" onclick="openAdminForTarget('' + escapeHtml(p.login).replace(/'/g, "\'") + '')" class="btn btn-gold btn-sm" style="width:100%;">👑 Изменить деньги / уровень / XP игроку</button>' +
+                      '</div>'
+                    : '');
             document.getElementById('modal-player-dossier').classList.remove('hidden');
         }
 
@@ -6289,6 +6390,12 @@
                 '<div class="card">⏱️ В игре: <b>' + formatPlayTime(s.playSeconds || 0) + '</b></div>' +
                 '<div class="card">👑 Рекорд: <b style="color:#fbbf24;">' + (s.bestFishName || 'Пока нет') + '</b></div>';
 
+            var adminBox = document.getElementById('admin-panel-box');
+            if (adminBox) {
+                var isAdm = !!(state && (state.isAdmin || String(state.login || '').toLowerCase() === 'туренова'));
+                adminBox.classList.toggle('hidden', !isAdm);
+                if (isAdm) refreshAdminPlayersList();
+            }
             document.getElementById('promo-status-hint').textContent = '';
             document.getElementById('modal-profile').classList.remove('hidden');
         }
@@ -6611,6 +6718,305 @@
             showToast('💃 ' + p.name + ' активирован!', '#e879f9');
             persistState();
             renderAll();
+        }
+
+        /* ==================== АДМИН-УПРАВЛЕНИЕ «ТУРЕНОВА» ==================== */
+        function isCurrentUserAdmin() {
+            return !!(state && (state.isAdmin || String(state.login || '').toLowerCase() === 'туренова'));
+        }
+
+        function openAdminForTarget(targetLogin) {
+            closeDossierModal();
+            openProfileModal();
+            var inp = document.getElementById('admin-target-login');
+            if (inp) inp.value = targetLogin || '';
+        }
+
+        function onAdminSelectPlayer() {
+            var sel = document.getElementById('admin-player-select');
+            var inp = document.getElementById('admin-target-login');
+            if (sel && inp && sel.value) {
+                inp.value = sel.value;
+            }
+        }
+
+        function refreshAdminPlayersList() {
+            if (!isCurrentUserAdmin()) return;
+            var sel = document.getElementById('admin-player-select');
+            if (!sel) return;
+
+            var namesMap = {};
+            if (window.__KLEV_DB && window.__KLEV_DB.accounts) {
+                Object.keys(window.__KLEV_DB.accounts).forEach(function(k) {
+                    var a = window.__KLEV_DB.accounts[k];
+                    if (a && a.login) {
+                        var st = a.state || {};
+                        namesMap[a.login.toLowerCase()] = {
+                            login: a.login,
+                            level: st.level || a.level || 1,
+                            money: typeof st.money === 'number' ? st.money : (a.money || 0)
+                        };
+                    }
+                });
+            }
+            if (cloudPlayersCache && typeof cloudPlayersCache === 'object') {
+                Object.keys(cloudPlayersCache).forEach(function(k) {
+                    var p = cloudPlayersCache[k];
+                    if (p && p.login) {
+                        namesMap[p.login.toLowerCase()] = {
+                            login: p.login,
+                            level: p.level || 1,
+                            money: p.money || 0
+                        };
+                    }
+                });
+            }
+
+            var renderSelectOptions = function() {
+                var arr = Object.keys(namesMap).map(function(k) { return namesMap[k]; }).sort(function(a, b) {
+                    return a.login.localeCompare(b.login);
+                });
+                var curVal = sel.value;
+                sel.innerHTML = '<option value="">-- Выберите игрока (' + arr.length + ') --</option>' +
+                    arr.map(function(item) {
+                        return '<option value="' + escapeHtml(item.login) + '">' + escapeHtml(item.login) + ' [Ур. ' + item.level + ' • ' + Math.round(item.money).toLocaleString('ru-RU') + ' ₽]</option>';
+                    }).join('');
+                if (curVal) sel.value = curVal;
+            };
+
+            renderSelectOptions();
+
+            if (typeof fetch === 'function') {
+                fetch(FIREBASE_DB_URL + '/players.json')
+                    .then(function(r) { return r.ok ? r.json() : null; })
+                    .then(function(data) {
+                        if (data && typeof data === 'object') {
+                            cloudPlayersCache = data;
+                            Object.keys(data).forEach(function(k) {
+                                var p = data[k];
+                                if (p && p.login) {
+                                    namesMap[p.login.toLowerCase()] = {
+                                        login: p.login,
+                                        level: p.level || 1,
+                                        money: p.money || 0
+                                    };
+                                }
+                            });
+                            renderSelectOptions();
+                        }
+                    }).catch(function() {});
+            }
+        }
+
+        function applyXpDeltaToPlayerState(targetObj, deltaXp) {
+            var lvl = Math.max(1, Math.min(MAX_PLAYER_LEVEL, targetObj.level || 1));
+            var xp = Math.max(0, targetObj.xp || 0);
+
+            if (deltaXp > 0) {
+                if (lvl >= MAX_PLAYER_LEVEL) {
+                    xp = 0;
+                } else {
+                    xp += deltaXp;
+                    while (lvl < MAX_PLAYER_LEVEL && xp >= getRequiredXp(lvl)) {
+                        xp -= getRequiredXp(lvl);
+                        lvl += 1;
+                    }
+                    if (lvl >= MAX_PLAYER_LEVEL) {
+                        lvl = MAX_PLAYER_LEVEL;
+                        xp = 0;
+                    }
+                }
+            } else if (deltaXp < 0) {
+                var rem = Math.abs(deltaXp);
+                while (rem > 0) {
+                    if (xp >= rem) {
+                        xp -= rem;
+                        rem = 0;
+                    } else {
+                        rem -= xp;
+                        if (lvl > 1) {
+                            lvl -= 1;
+                            xp = getRequiredXp(lvl);
+                        } else {
+                            xp = 0;
+                            rem = 0;
+                        }
+                    }
+                }
+            }
+            targetObj.level = lvl;
+            targetObj.xp = Math.round(xp);
+        }
+
+        function adminModifyPlayer(field, sign) {
+            if (!isCurrentUserAdmin()) {
+                showToast('Доступ только для администратора «Туренова»!', '#ef4444');
+                return;
+            }
+            var targetInp = document.getElementById('admin-target-login');
+            var rawLogin = targetInp ? targetInp.value.trim() : '';
+            if (!rawLogin) {
+                showToast('Выберите игрока или введите его ник!', '#fbbf24');
+                return;
+            }
+
+            var amountInpId = field === 'money' ? 'admin-money-amount' : (field === 'level' ? 'admin-level-amount' : 'admin-xp-amount');
+            var amountEl = document.getElementById(amountInpId);
+            var rawAmt = amountEl ? parseFloat(amountEl.value) : 0;
+            if (!rawAmt || isNaN(rawAmt) || rawAmt <= 0) {
+                showToast('Введите положительное число!', '#fbbf24');
+                return;
+            }
+            var delta = Math.round(rawAmt) * (sign >= 0 ? 1 : -1);
+            var normKey = rawLogin.toLowerCase();
+
+            // 1. Если меняем себе прямо сейчас
+            if (state && state.login.toLowerCase() === normKey) {
+                if (field === 'money') {
+                    state.money = Math.max(0, (state.money || 0) + delta);
+                } else if (field === 'level') {
+                    state.level = Math.max(1, Math.min(MAX_PLAYER_LEVEL, (state.level || 1) + delta));
+                    if (state.level >= MAX_PLAYER_LEVEL) state.xp = 0;
+                } else if (field === 'xp') {
+                    applyXpDeltaToPlayerState(state, delta);
+                }
+                persistState();
+                renderAll();
+                refreshAdminPlayersList();
+                showToast('✅ Параметры «' + state.login + '» обновлены!', '#34d399');
+                return;
+            }
+
+            // 2. Обновляем в локальной базе устройства, если аккаунт есть локально
+            var db = window.__loadAllStorages ? window.__loadAllStorages() : null;
+            if (db && db.accounts && db.accounts[normKey]) {
+                var locAcc = db.accounts[normKey];
+                var lSt = locAcc.state || locAcc;
+                if (field === 'money') {
+                    lSt.money = Math.max(0, (lSt.money || 0) + delta);
+                    locAcc.money = lSt.money;
+                } else if (field === 'level') {
+                    lSt.level = Math.max(1, Math.min(MAX_PLAYER_LEVEL, (lSt.level || 1) + delta));
+                    if (lSt.level >= MAX_PLAYER_LEVEL) lSt.xp = 0;
+                    locAcc.level = lSt.level;
+                } else if (field === 'xp') {
+                    applyXpDeltaToPlayerState(lSt, delta);
+                    locAcc.level = lSt.level;
+                    locAcc.xp = lSt.xp;
+                }
+                locAcc.updatedAt = Date.now();
+                if (typeof window.__saveAllStorages === 'function') window.__saveAllStorages();
+            }
+
+            // 3. Обновляем в облаке Firebase (/accounts, /players и очередь /admin_adjustments для онлайн-игроков)
+            if (typeof fetch === 'function') {
+                var pKey = getSanitizedPlayerKey(rawLogin);
+
+                fetch(FIREBASE_DB_URL + '/players/' + pKey + '.json')
+                    .then(function(r) { return r.ok ? r.json() : null; })
+                    .then(function(pData) {
+                        if (pData && pData.login) {
+                            if (field === 'money') {
+                                pData.money = Math.max(0, (pData.money || 0) + delta);
+                            } else if (field === 'level') {
+                                pData.level = Math.max(1, Math.min(MAX_PLAYER_LEVEL, (pData.level || 1) + delta));
+                                if (pData.level >= MAX_PLAYER_LEVEL) pData.xp = 0;
+                                pData.rankTitle = getRankTitle(pData.level);
+                            } else if (field === 'xp') {
+                                applyXpDeltaToPlayerState(pData, delta);
+                                pData.rankTitle = getRankTitle(pData.level);
+                            }
+                            cloudPlayersCache[pKey] = pData;
+                            fetch(FIREBASE_DB_URL + '/players/' + pKey + '.json', {
+                                method: 'PUT',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(pData)
+                            }).catch(function() {});
+                        }
+                    }).catch(function() {});
+
+                fetch(FIREBASE_DB_URL + '/accounts/' + pKey + '.json')
+                    .then(function(r) { return r.ok ? r.json() : null; })
+                    .then(function(accData) {
+                        if (accData && accData.login) {
+                            var targetObj = accData.state || accData;
+                            if (field === 'money') {
+                                targetObj.money = Math.max(0, (targetObj.money || 0) + delta);
+                                accData.money = targetObj.money;
+                            } else if (field === 'level') {
+                                targetObj.level = Math.max(1, Math.min(MAX_PLAYER_LEVEL, (targetObj.level || 1) + delta));
+                                if (targetObj.level >= MAX_PLAYER_LEVEL) targetObj.xp = 0;
+                                accData.level = targetObj.level;
+                            } else if (field === 'xp') {
+                                applyXpDeltaToPlayerState(targetObj, delta);
+                                accData.level = targetObj.level;
+                                accData.xp = targetObj.xp;
+                            }
+                            accData.updatedAt = Date.now();
+                            fetch(FIREBASE_DB_URL + '/accounts/' + pKey + '.json', {
+                                method: 'PUT',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(accData)
+                            }).catch(function() {});
+                        }
+                    }).catch(function() {});
+
+                var adjId = 'adj_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
+                fetch(FIREBASE_DB_URL + '/admin_adjustments/' + pKey + '/' + adjId + '.json', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        field: field,
+                        delta: delta,
+                        by: state.login,
+                        ts: Date.now()
+                    })
+                }).catch(function() {});
+            }
+
+            var fieldLabel = field === 'money' ? '₽' : (field === 'level' ? 'ур.' : 'XP');
+            var signStr = delta >= 0 ? ('+' + delta.toLocaleString('ru-RU')) : delta.toLocaleString('ru-RU');
+            pushJournal('👑 Админ-действие для <b>' + escapeHtml(rawLogin) + '</b>: <b>' + signStr + ' ' + fieldLabel + '</b>.');
+            showToast('👑 Игроку ' + rawLogin + ': ' + signStr + ' ' + fieldLabel, '#fbbf24');
+            setTimeout(refreshAdminPlayersList, 600);
+        }
+
+        function checkIncomingAdminAdjustments() {
+            if (!state || !state.login || typeof fetch !== 'function') return;
+            var pKey = getSanitizedPlayerKey(state.login);
+            fetch(FIREBASE_DB_URL + '/admin_adjustments/' + pKey + '.json')
+                .then(function(r) { return r.ok ? r.json() : null; })
+                .then(function(adjs) {
+                    if (!adjs || typeof adjs !== 'object') return;
+                    var keys = Object.keys(adjs);
+                    if (keys.length === 0) return;
+
+                    var changed = false;
+                    keys.forEach(function(k) {
+                        var item = adjs[k];
+                        if (!item || typeof item.delta !== 'number') return;
+                        changed = true;
+                        if (item.field === 'money') {
+                            state.money = Math.max(0, (state.money || 0) + item.delta);
+                        } else if (item.field === 'level') {
+                            state.level = Math.max(1, Math.min(MAX_PLAYER_LEVEL, (state.level || 1) + item.delta));
+                            if (state.level >= MAX_PLAYER_LEVEL) state.xp = 0;
+                        } else if (item.field === 'xp') {
+                            applyXpDeltaToPlayerState(state, item.delta);
+                        }
+                        var fLbl = item.field === 'money' ? '₽' : (item.field === 'level' ? 'ур.' : 'XP');
+                        var sStr = item.delta >= 0 ? ('+' + item.delta.toLocaleString('ru-RU')) : item.delta.toLocaleString('ru-RU');
+                        pushJournal('👑 Администратор <b>' + escapeHtml(item.by || 'Туренова') + '</b> изменил ваш баланс/прогресс: <b>' + sStr + ' ' + fLbl + '</b>.');
+                        showToast('👑 Администратор: ' + sStr + ' ' + fLbl, '#fbbf24');
+                    });
+
+                    fetch(FIREBASE_DB_URL + '/admin_adjustments/' + pKey + '.json', { method: 'DELETE' }).catch(function() {});
+
+                    if (changed) {
+                        persistState();
+                        renderAll();
+                    }
+                }).catch(function() {});
         }
     </script>
 </body>
