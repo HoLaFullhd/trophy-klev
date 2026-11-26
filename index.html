@@ -1866,7 +1866,7 @@
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 8px;">
                 <div>
                     <h3 style="font-size: 16px; font-weight: 900; color: #38bdf8; margin:0;">📚 Альманах рыб (Бестиарий)</h3>
-                    <div id="almanac-day-subtitle" style="font-size: 10px; color: #94a3b8;">Игровые сутки • Предпочтения обновляются ежедневно</div>
+                    <div id="almanac-day-subtitle" style="font-size: 10px; color: #94a3b8;">Справочник видов рыб: места обитания, время клёва и наживки</div>
                 </div>
                 <button type="button" onclick="closeAlmanacModal()" class="btn btn-secondary btn-sm">✕</button>
             </div>
@@ -3757,26 +3757,22 @@
             return spots[mappedIdx].trophyBonus || 1.0;
         }
 
-        /* ==================== АЛЬМАНАХ РЫБ И СУТОЧНАЯ СМЕНА ПРЕДПОЧТЕНИЙ ==================== */
-        function getDailyFishPreferences(speciesObj) {
-            var day = getGameDayNumber();
-            var seed = day * 17 + 29;
-            for (var i = 0; i < speciesObj.id.length; i++) {
-                seed = (seed * 37 + speciesObj.id.charCodeAt(i)) % 100000;
-            }
-            var allBaits = SHOP_GEAR.baits;
-            var baitOfDayObj = allBaits[seed % allBaits.length];
-
+        /* ==================== АЛЬМАНАХ РЫБ (СПРАВОЧНИК ВИДОВ) ==================== */
+        function getFishPreferredSpots(speciesObj) {
             var locObj = LOCATIONS[speciesObj.loc];
-            var spots = (locObj && locObj.spots) ? locObj.spots : [];
-            var bestSpotObj = spots.length > 0 ? spots[(seed * 3 + 1) % spots.length] : null;
-
-            return {
-                baitId: baitOfDayObj ? baitOfDayObj.id : speciesObj.baits[0],
-                baitObj: baitOfDayObj,
-                spotId: bestSpotObj ? bestSpotObj.id : '',
-                spotObj: bestSpotObj
-            };
+            var spots = (locObj && Array.isArray(locObj.spots)) ? locObj.spots : [];
+            if (spots.length === 0) return [];
+            var hash = 0;
+            for (var i = 0; i < speciesObj.id.length; i++) {
+                hash = (hash * 31 + speciesObj.id.charCodeAt(i)) % 100000;
+            }
+            var s1 = spots[hash % spots.length];
+            // Для крупных/редких рыб чаще 1 основная точка стоянки, для стайных — 2 точки
+            if (speciesObj.isRareTrophy || speciesObj.maxW >= 40) {
+                return [s1];
+            }
+            var s2 = spots[(hash + 1) % spots.length];
+            return s1.id === s2.id ? [s1] : [s1, s2];
         }
 
         function openAlmanacModal() {
@@ -3798,7 +3794,7 @@
         function renderAlmanacModal() {
             if (!state) return;
             var subEl = document.getElementById('almanac-day-subtitle');
-            if (subEl) subEl.textContent = 'Игровые сутки №' + (getGameDayNumber() + 1) + ' • Вкус дня (×2.15) и лучшая точка (×1.45) меняются в 00:00';
+            if (subEl) subEl.textContent = 'Справочник видов рыб: места стоянки, время клёва и наживки';
 
             var chipsEl = document.getElementById('almanac-loc-chips');
             var listEl = document.getElementById('almanac-content-list');
@@ -3815,7 +3811,10 @@
             var list = FISH_SPECIES.filter(function(f) { return f.loc === almanacLocFilter; });
 
             listEl.innerHTML = list.map(function(f) {
-                var prefs = getDailyFishPreferences(f);
+                var prefSpots = getFishPreferredSpots(f);
+                var spotsStr = prefSpots.length > 0
+                    ? prefSpots.map(function(s) { return s.name; }).join(', ')
+                    : 'По всему водоёму';
                 var pStr = f.periods.map(function(pid) { return periodNames[pid] || pid; }).join(', ');
                 var dietStr = f.baits.map(function(bid) {
                     var bo = findById(SHOP_GEAR.baits, bid);
@@ -3843,10 +3842,9 @@
                     '</div>' +
                     '<div style="color:#cbd5e1; margin-bottom:6px; line-height:1.35;">' + f.desc + '</div>' +
                     '<div style="display:grid; grid-template-columns:1fr; gap:3px; background:rgba(15,23,42,0.72); border-radius:9px; padding:7px 8px; margin-bottom:6px;">' +
-                        '<div>⏰ <b>Время суток:</b> ' + pStr + '</div>' +
-                        '<div>📍 <b>Лучшая точка дня (×1.45):</b> <span style="color:#6ee7b7; font-weight:800;">' + (prefs.spotObj ? prefs.spotObj.name : 'Любая') + '</span></div>' +
-                        '<div>✨ <b>Вкус дня (×2.15):</b> <span style="color:#fde047; font-weight:800;">' + (prefs.baitObj ? (prefs.baitObj.icon + ' ' + prefs.baitObj.name) : '—') + '</span></div>' +
-                        '<div>🪱 <b>Обычный рацион:</b> ' + dietStr + '</div>' +
+                        '<div>⏰ <b>Время клёва:</b> ' + pStr + '</div>' +
+                        '<div>📍 <b>Рыбацкие места:</b> <span style="color:#6ee7b7; font-weight:800;">' + spotsStr + '</span></div>' +
+                        '<div>🪱 <b>Наживки:</b> <span style="color:#fde047; font-weight:700;">' + dietStr + '</span></div>' +
                         '<div>🌾 <b>Подходящая прикормка (×2.8):</b> <span style="color:#c084fc;">' + chumStr + '</span></div>' +
                     '</div>' +
                     '<div style="display:flex; justify-content:space-between; align-items:center; font-size:11px;">' +
@@ -4386,12 +4384,15 @@
             }
 
             function calcSpeciesWeight(sp, baseMatch, baseOther) {
-                var prefs = getDailyFishPreferences(sp);
                 var baitMatch = sp.baits.indexOf(state.selectedBait) !== -1;
-                var isDailyBait = (prefs.baitId === state.selectedBait);
-                var w = (baitMatch || isDailyBait) ? baseMatch : baseOther;
-                if (isDailyBait) w *= 2.15;
-                if (prefs.spotId === state.spotId) w *= 1.45;
+                var w = baitMatch ? baseMatch : baseOther;
+                var prefSpots = getFishPreferredSpots(sp);
+                var inPreferredSpot = prefSpots.some(function(s) { return s.id === state.spotId; });
+                if (inPreferredSpot) {
+                    w *= 1.65;
+                } else {
+                    w *= 0.65;
+                }
                 if (chumObj && Array.isArray(chumObj.targetSpecies) && chumObj.targetSpecies.indexOf(sp.id) !== -1) {
                     w *= 2.8;
                 }
