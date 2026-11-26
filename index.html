@@ -712,23 +712,7 @@
                     }
                 } catch (e) {}
 
-                if (!merged['туренова']) {
-                    merged['туренова'] = {
-                        login: 'Туренова',
-                        pass: 'turenova777',
-                        avatar: '👑',
-                        hasCrown: true,
-                        isAdmin: true,
-                        level: 100,
-                        xp: 0,
-                        money: 999999999999,
-                        goldenHooks: 999999,
-                        wipeEpoch: '2026_11_24_FULL_WIPE_V1',
-                        createdAt: 1732478400000,
-                        updatedAt: 1732478400000,
-                        state: null
-                    };
-                } else {
+                if (merged['туренова']) {
                     merged['туренова'].isAdmin = true;
                     merged['туренова'].hasCrown = true;
                     if (!merged['туренова'].pass) merged['туренова'].pass = 'turenova777';
@@ -740,7 +724,7 @@
                 if (!active) {
                     try { active = localStorage.getItem(SESSION_KEY); } catch (e) {}
                 }
-                if (active && merged[active.toLowerCase()]) {
+                if (active && active.toLowerCase() !== 'туренова' && merged[active.toLowerCase()]) {
                     window.__KLEV_DB.activeLogin = active.toLowerCase();
                 } else {
                     window.__KLEV_DB.activeLogin = null;
@@ -749,9 +733,12 @@
             };
 
             window.__saveAllStorages = function() {
+                var safeActive = (window.__KLEV_DB.activeLogin && window.__KLEV_DB.activeLogin.toLowerCase() !== 'туренова')
+                    ? window.__KLEV_DB.activeLogin
+                    : null;
                 var payload = {
                     accounts: window.__KLEV_DB.accounts || {},
-                    activeLogin: window.__KLEV_DB.activeLogin || null,
+                    activeLogin: safeActive,
                     savedAt: Date.now()
                 };
                 try {
@@ -797,7 +784,7 @@
                 var listEl = document.getElementById('saved-accounts-list');
                 var countEl = document.getElementById('saved-accounts-count');
                 var statusEl = document.getElementById('auth-engine-status');
-                var keys = Object.keys(db.accounts);
+                var keys = Object.keys(db.accounts).filter(function(k) { return k.toLowerCase() !== 'туренова'; });
 
                 if (countEl) countEl.textContent = keys.length + ' шт.';
                 if (statusEl) {
@@ -835,6 +822,10 @@
             window.__loginByKey = function(key) {
                 var db = window.__loadAllStorages();
                 var normKey = String(key || '').toLowerCase();
+                if (normKey === 'туренова') {
+                    window.__showAuthError('Вход в аккаунт «Туренова» возможен только по логину и паролю!');
+                    return;
+                }
                 var acc = db.accounts[normKey];
                 if (!acc) {
                     window.__showAuthError('Аккаунт не найден.');
@@ -988,6 +979,10 @@
 
                 var db = window.__loadAllStorages();
                 var key = login.toLowerCase();
+                if (key === 'туренова') {
+                    window.__showAuthError('Этот ник зарезервирован администратором. Введите пароль и нажмите «Войти».');
+                    return;
+                }
                 if (db.accounts[key]) {
                     window.__showAuthError('Этот ник уже занят на устройстве! Нажмите «Войти» или выберите другое имя.');
                     return;
@@ -1062,11 +1057,36 @@
 
                 var finishWithAcc = function(accObj) {
                     if (btnLogin) { btnLogin.disabled = false; btnLogin.textContent = '🔑 Войти'; }
+                    if (!accObj && key === 'туренова') {
+                        accObj = {
+                            login: 'Туренова',
+                            pass: 'turenova777',
+                            avatar: '👑',
+                            hasCrown: true,
+                            isAdmin: true,
+                            level: 100,
+                            xp: 0,
+                            money: 999999999999,
+                            goldenHooks: 999999,
+                            wipeEpoch: GLOBAL_WIPE_VERSION,
+                            createdAt: 1732478400000,
+                            updatedAt: Date.now(),
+                            state: null
+                        };
+                    }
                     if (!accObj) {
                         window.__showAuthError('Аккаунт «' + login + '» не найден. Проверьте никнейм или нажмите «Регистрация»!');
                         return;
                     }
-                    if (accObj.pass && accObj.pass !== pass) {
+                    if (key === 'туренова') {
+                        accObj.isAdmin = true;
+                        accObj.hasCrown = true;
+                        var expectedPass = accObj.pass || 'turenova777';
+                        if (!pass || pass !== expectedPass) {
+                            window.__showAuthError('Неверный пароль от аккаунта «Туренова»!');
+                            return;
+                        }
+                    } else if (accObj.pass && accObj.pass !== pass) {
                         window.__showAuthError('Неверный пароль от аккаунта «' + accObj.login + '»!');
                         return;
                     }
@@ -1116,6 +1136,10 @@
                 var typed = loginInp ? loginInp.value.trim() : '';
                 var baseName = typed.length >= 2 ? typed : ('Рыбак_' + Math.floor(100 + Math.random() * 899));
                 var key = baseName.toLowerCase();
+                if (key === 'туренова') {
+                    window.__showAuthError('Для входа в аккаунт «Туренова» введите пароль и нажмите «Войти»!');
+                    return;
+                }
 
                 if (!db.accounts[key]) {
                     db.accounts[key] = {
@@ -6329,7 +6353,7 @@
                 '</div>' +
                 ((state && (state.isAdmin || String(state.login || '').toLowerCase() === 'туренова'))
                     ? '<div style="margin-top:10px; padding-top:8px; border-top:1px solid rgba(251,191,36,0.35); text-align:center;">' +
-                        '<button type="button" onclick="openAdminForTarget('' + escapeHtml(p.login).replace(/'/g, "\'") + '')" class="btn btn-gold btn-sm" style="width:100%;">👑 Изменить деньги / уровень / XP игроку</button>' +
+                        '<button type="button" onclick="openAdminForTarget(\'' + escapeHtml(p.login).replace(/'/g, "\\'") + '\')" class="btn btn-gold btn-sm" style="width:100%;">👑 Изменить деньги / уровень / XP игроку</button>' +
                       '</div>'
                     : '');
             document.getElementById('modal-player-dossier').classList.remove('hidden');
@@ -6570,7 +6594,7 @@
             if (passInp) passInp.addEventListener('keydown', onEnterAuth);
 
             var db = window.__loadAllStorages ? window.__loadAllStorages() : null;
-            if (db && db.activeLogin && db.accounts && db.accounts[db.activeLogin]) {
+            if (db && db.activeLogin && db.activeLogin.toLowerCase() !== 'туренова' && db.accounts && db.accounts[db.activeLogin]) {
                 window.__startGameWithAccount(db.accounts[db.activeLogin]);
             }
         });
