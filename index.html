@@ -4472,7 +4472,7 @@
             }
 
             var ecoW = getEffectiveEconomyWeight(finalWeight);
-            var sellPrice = Math.max(15, Math.round(ecoW * chosen.basePrice * rarityInfo.mult));
+            var sellPrice = Math.max(8, Math.round(ecoW * chosen.basePrice * rarityInfo.mult * 0.5));
 
             activeFish = {
                 species: chosen,
@@ -4614,8 +4614,8 @@
             applyGearWear(rodWear, reelWear);
 
             var ecoCatchW = getEffectiveEconomyWeight(caught.weight);
-            var rawXp = (caught.species.baseXp + ecoCatchW * caught.species.xpPerKg) * caught.rarityInfo.xpMult * cond.xpMult;
-            var gainedXp = Math.max(12, Math.round(rawXp));
+            var rawXp = (caught.species.baseXp + ecoCatchW * caught.species.xpPerKg) * caught.rarityInfo.xpMult * cond.xpMult * 0.5;
+            var gainedXp = Math.max(6, Math.round(rawXp));
 
             state.stats.caughtCount = (state.stats.caughtCount || 0) + 1;
             state.stats.totalWeight = +((state.stats.totalWeight || 0) + caught.weight).toFixed(2);
@@ -4711,7 +4711,7 @@
                 }
             }
             if (btnSellNow) {
-                var quickP = Math.max(10, Math.round(caught.price * 0.85));
+                var quickP = Math.max(5, Math.round(caught.price * 0.85));
                 btnSellNow.textContent = '💰 Сразу (' + quickP.toLocaleString('ru-RU') + ' ₽)';
             }
             document.getElementById('modal-catch').classList.remove('hidden');
@@ -4741,7 +4741,7 @@
                     return;
                 }
                 var bonusMult = 1 + (netInfo.bonusPct / 100);
-                lastCaughtFishObj.price = Math.max(15, Math.round(lastCaughtFishObj.price * bonusMult));
+                lastCaughtFishObj.price = Math.max(8, Math.round(lastCaughtFishObj.price * bonusMult));
                 state.net.unshift(lastCaughtFishObj);
                 lastCaughtFishObj = null;
             }
@@ -4752,7 +4752,7 @@
 
         function sellCaughtFishImmediately() {
             if (lastCaughtFishObj) {
-                var quickPrice = Math.max(10, Math.round(lastCaughtFishObj.price * 0.85));
+                var quickPrice = Math.max(5, Math.round(lastCaughtFishObj.price * 0.85));
                 state.money += quickPrice;
                 state.stats.totalEarned = (state.stats.totalEarned || 0) + quickPrice;
                 showToast('💰 Продано на берегу (-15% комиссия): ' + quickPrice.toLocaleString('ru-RU') + ' ₽', '#fbbf24');
