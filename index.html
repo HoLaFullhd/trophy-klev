@@ -143,7 +143,10 @@
             background: #0b192c;
         }
         .lake-stage.focus-mode {
-            height: 365px;
+            height: 248px;
+        }
+        .lake-stage.fight-mode {
+            height: 192px;
         }
         .lake-svg-layer {
             position: relative;
@@ -1310,7 +1313,7 @@
                 </div>
 
                 <!-- ПАНЕЛЬ ВЫВАЖИВАНИЯ -->
-                <div id="fight-panel" class="card hidden" style="border-color: #f59e0b; background: rgba(15, 23, 42, 0.96);">
+                <div id="fight-panel" class="card hidden" style="border-color: #f59e0b; background: rgba(15, 23, 42, 0.96); padding: 8px 10px;">
                     <div id="bite-action-box" class="hidden" style="text-align: center;">
                         <div style="font-size: 15px; font-weight: 900; color: #fbbf24; margin-bottom: 8px;">
                             ❗ ПОКЛЁВКА! ПОПЛАВОК ПОВЕЛО В СТОРОНУ!
@@ -1343,55 +1346,60 @@
                     </div>
 
                     <div id="reeling-action-box" class="hidden">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; gap: 6px;">
-                            <span id="fight-fish-hint" style="font-size: 12px; font-weight: 800; color: #38bdf8;">🐟 Сопротивление рыбы</span>
-                            <span id="fight-distance-text" style="font-size: 12px; font-weight: 900; color: #34d399; white-space: nowrap;">До берега: 18.0 м</span>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3px; gap: 6px;">
+                            <span id="fight-fish-hint" style="font-size: 11px; font-weight: 800; color: #38bdf8;">🐟 Сопротивление рыбы</span>
+                            <span id="fight-distance-text" style="font-size: 11.5px; font-weight: 900; color: #34d399; white-space: nowrap;">До берега: 18.0 м</span>
                         </div>
-                        <div id="fight-trait-banner" style="font-size: 11px; font-weight: 800; color: #fde68a; background: rgba(30, 41, 59, 0.85); border: 1px solid rgba(251, 191, 36, 0.28); border-radius: 9px; padding: 4px 8px; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center;">
+                        <div id="fight-trait-banner" style="font-size: 10.5px; font-weight: 800; color: #fde68a; background: rgba(30, 41, 59, 0.85); border: 1px solid rgba(251, 191, 36, 0.28); border-radius: 8px; padding: 3px 7px; margin-bottom: 5px; display: flex; justify-content: space-between; align-items: center;">
                             <span id="fight-trait-text">🎣 Вываживание</span>
                             <span id="fight-surge-text" style="color: #94a3b8;">Ровный ход</span>
                         </div>
 
-                        <div style="margin-bottom: 3px; display:flex; justify-content:space-between; font-size: 11px; font-weight: 700;">
-                            <span>Натяжение лески</span>
-                            <span id="fight-tension-pct">35%</span>
-                        </div>
-                        <div class="tension-bar-wrap" style="margin-bottom: 7px;">
-                            <div id="fight-tension-fill" class="tension-bar-fill" style="width: 35%; background: #10b981;"></div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 6px;">
+                            <div>
+                                <div style="margin-bottom: 2px; display:flex; justify-content:space-between; font-size: 10px; font-weight: 700;">
+                                    <span>Натяжение</span>
+                                    <span id="fight-tension-pct">35%</span>
+                                </div>
+                                <div class="tension-bar-wrap" style="height: 10px;">
+                                    <div id="fight-tension-fill" class="tension-bar-fill" style="width: 35%; background: #10b981;"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div style="margin-bottom: 2px; display:flex; justify-content:space-between; font-size: 10px; font-weight: 700;">
+                                    <span style="color:#fde68a;">⚡ Силы рыбы</span>
+                                    <span id="fight-stamina-pct" style="color:#fbbf24;">100%</span>
+                                </div>
+                                <div class="tension-bar-wrap" style="height: 10px;">
+                                    <div id="fight-stamina-fill" class="tension-bar-fill" style="width: 100%; background: linear-gradient(90deg, #38bdf8, #f59e0b);"></div>
+                                </div>
+                            </div>
                         </div>
 
-                        <div style="margin-bottom: 3px; display:flex; justify-content:space-between; font-size: 11px; font-weight: 700;">
-                            <span style="color:#fde68a;">⚡ Силы рыбы (устаёт при борьбе)</span>
-                            <span id="fight-stamina-pct" style="color:#fbbf24;">100%</span>
-                        </div>
-                        <div class="tension-bar-wrap" style="height: 9px; margin-bottom: 10px;">
-                            <div id="fight-stamina-fill" class="tension-bar-fill" style="width: 100%; background: linear-gradient(90deg, #38bdf8, #f59e0b);"></div>
-                        </div>
-
-                        <div style="background: rgba(30, 41, 59, 0.88); border: 1px solid rgba(56, 189, 248, 0.35); border-radius: 12px; padding: 8px 10px; margin-bottom: 9px;">
-                            <div style="display:flex; justify-content:space-between; align-items:center; font-size: 11px; font-weight: 800; margin-bottom: 5px;">
+                        <div style="background: rgba(30, 41, 59, 0.88); border: 1px solid rgba(56, 189, 248, 0.35); border-radius: 10px; padding: 5px 8px; margin-bottom: 6px;">
+                            <div style="display:flex; justify-content:space-between; align-items:center; font-size: 10.5px; font-weight: 800; margin-bottom: 3px;">
                                 <span id="fight-drag-label" style="color: #38bdf8;">⚙️ Фрикцион: 20 / 30</span>
                                 <span id="fight-spool-text" style="color: #cbd5e1;">Леска: 18 / 60 м</span>
                             </div>
-                            <div style="display:flex; align-items:center; gap: 6px; margin-bottom: 6px;">
-                                <button type="button" onclick="adjustFrictionDrag(-1)" class="btn btn-secondary btn-sm" style="padding: 5px 10px; font-size: 13px;">−</button>
-                                <input id="fight-drag-slider" type="range" min="1" max="30" value="20" oninput="setFrictionDrag(this.value)" style="flex:1; accent-color:#38bdf8; cursor:pointer;">
-                                <button type="button" onclick="adjustFrictionDrag(1)" class="btn btn-secondary btn-sm" style="padding: 5px 10px; font-size: 13px;">+</button>
+                            <div style="display:flex; align-items:center; gap: 5px; margin-bottom: 4px;">
+                                <button type="button" onclick="adjustFrictionDrag(-1)" class="btn btn-secondary btn-sm" style="padding: 3px 9px; font-size: 12px;">−</button>
+                                <input id="fight-drag-slider" type="range" min="1" max="30" value="20" oninput="setFrictionDrag(this.value)" style="flex:1; accent-color:#38bdf8; cursor:pointer; height: 18px;">
+                                <button type="button" onclick="adjustFrictionDrag(1)" class="btn btn-secondary btn-sm" style="padding: 3px 9px; font-size: 12px;">+</button>
                             </div>
-                            <div style="display:grid; grid-template-columns: repeat(5, 1fr); gap: 4px;">
-                                <button type="button" onclick="setFrictionDrag(15)" class="btn btn-secondary btn-sm" style="padding: 4px 2px; font-size: 10px;">15</button>
-                                <button type="button" onclick="setFrictionDrag(20)" class="btn btn-secondary btn-sm" style="padding: 4px 2px; font-size: 10px;">20</button>
-                                <button type="button" onclick="setFrictionDrag(25)" class="btn btn-secondary btn-sm" style="padding: 4px 2px; font-size: 10px;">25</button>
-                                <button type="button" onclick="setFrictionDrag(29)" class="btn btn-gold btn-sm" style="padding: 4px 2px; font-size: 10px;">29</button>
-                                <button type="button" onclick="setFrictionDrag(30)" class="btn btn-danger btn-sm" style="padding: 4px 2px; font-size: 10px;">30 КЛИН</button>
+                            <div style="display:grid; grid-template-columns: repeat(5, 1fr); gap: 3px;">
+                                <button type="button" onclick="setFrictionDrag(15)" class="btn btn-secondary btn-sm" style="padding: 3px 2px; font-size: 10px;">15</button>
+                                <button type="button" onclick="setFrictionDrag(20)" class="btn btn-secondary btn-sm" style="padding: 3px 2px; font-size: 10px;">20</button>
+                                <button type="button" onclick="setFrictionDrag(25)" class="btn btn-secondary btn-sm" style="padding: 3px 2px; font-size: 10px;">25</button>
+                                <button type="button" onclick="setFrictionDrag(29)" class="btn btn-gold btn-sm" style="padding: 3px 2px; font-size: 10px;">29</button>
+                                <button type="button" onclick="setFrictionDrag(30)" class="btn btn-danger btn-sm" style="padding: 3px 2px; font-size: 10px;">30 КЛИН</button>
                             </div>
                         </div>
 
-                        <div style="display: grid; grid-template-columns: 1.45fr 1fr; gap: 8px;">
-                            <button type="button" onclick="reelInStep()" class="btn btn-primary" style="padding: 14px 10px; font-size: 14px;">
+                        <div style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 6px;">
+                            <button type="button" onclick="reelInStep()" class="btn btn-primary" style="padding: 11px 8px; font-size: 13.5px;">
                                 🎣 Подмотать
                             </button>
-                            <button id="btn-friction-drag" type="button" onclick="quickDropDrag()" class="btn btn-blue" style="padding: 14px 8px; font-size: 12px;">
+                            <button id="btn-friction-drag" type="button" onclick="quickDropDrag()" class="btn btn-blue" style="padding: 11px 6px; font-size: 12px;">
                                 🔽 Стравить (−5)
                             </button>
                         </div>
@@ -2031,7 +2039,7 @@
                     <div style="font-weight:900; color:#6ee7b7; margin-bottom:4px;">🆕 Версия v2.1 — Фрикцион РР4 (1–30), Варка прикормки, Глубины, Кафе и Рыбнадзор</div>
                     <ul style="margin:0; padding-left:16px; line-height:1.45;">
                         <li><b>Реалистичный фрикцион (1–30):</b> регулируйте тормоз от 1 до 29 (стравливает при перегрузке) и 30 (КЛИН без стравливания).</li>
-                        <li><b>Разрыв и размот лески:</b> при полном размоте лески до лимита или обрыве на 100% леска теряется — повторная покупка порванной лески в Лавке стоит <b>50% цены</b>!</li>
+                        <li><b>Разрыв и размот лески:</b> при полном размоте лески до лимита или обрыве на 100% леска теряется — повторная покупка порванной лески в Лавке стоит <b>25% цены</b>!</li>
                         <li><b>Усиленный износ удочек:</b> обычная рыба изнашивает удочку на <b>15–20% от веса</b>, а трофеи и редкие трофеи — на <b>30% от веса</b>.</li>
                         <li><b>Вкладка «🥣 Прикорм» и ингредиенты:</b> покупайте ингредиенты в Лавке, варите прикормку за деньги, качайте уровень навыка прикормки (1–8) и открывайте топовые рецепты.</li>
                         <li><b>Выбор глубины:</b> выставляйте глубину заброса; раз в игровые сутки рыбы меняют свои предпочтительные глубины!</li>
@@ -2819,14 +2827,14 @@
         };
 
         var CHUM_RECIPES = [
-            { id: 'rec_bad', chumId: 'chum_bad', reqLvl: 1, outQty: 3, moneyCost: 45, skillXp: 15, ingredients: { ing_crumbs: 1, ing_cake: 1 }, desc: 'Самая простая болтушка — варите её, чтобы прокачать навык прикормки!' },
-            { id: 'rec_base', chumId: 'chum_base', reqLvl: 2, outQty: 4, moneyCost: 110, skillXp: 24, ingredients: { ing_crumbs: 2, ing_cake: 1, ing_millet: 1 }, desc: 'Надёжная универсальная база для мирной рыбы.' },
-            { id: 'rec_anise', chumId: 'chum_anise', reqLvl: 3, outQty: 4, moneyCost: 220, skillXp: 35, ingredients: { ing_millet: 2, ing_anise: 1 }, desc: 'Анисовая смесь на карася, линя и Царь-Карася.' },
-            { id: 'rec_vanilla', chumId: 'chum_vanilla', reqLvl: 4, outQty: 4, moneyCost: 340, skillXp: 48, ingredients: { ing_crumbs: 2, ing_corn: 1, ing_vanilla: 1 }, desc: 'Сладкая ванильная прикормка для леща и плотвы.' },
-            { id: 'rec_carp', chumId: 'chum_carp', reqLvl: 5, outQty: 5, moneyCost: 520, skillXp: 65, ingredients: { ing_corn: 2, ing_cake: 1, ing_strawberry: 1 }, desc: 'Ароматный карповый микс на сазана и амура.' },
-            { id: 'rec_predator', chumId: 'chum_predator', reqLvl: 6, outQty: 5, moneyCost: 820, skillXp: 85, ingredients: { ing_cake: 1, ing_blood: 2 }, desc: 'Кровавый шлейф для охоты на хищников.' },
-            { id: 'rec_catfish', chumId: 'chum_catfish', reqLvl: 7, outQty: 5, moneyCost: 1250, skillXp: 110, ingredients: { ing_liver: 2, ing_blood: 1 }, desc: 'Глубинный магнит на сомов, налима и осетров.' },
-            { id: 'rec_sea', chumId: 'chum_sea', reqLvl: 8, outQty: 5, moneyCost: 2600, skillXp: 150, ingredients: { ing_krill: 2, ing_liver: 1 }, desc: 'Элитная морская смесь на Белугу, Акул и Левиафана!' }
+            { id: 'rec_bad', chumId: 'chum_bad', reqLvl: 1, outQty: 3, moneyCost: 75, skillXp: 6, ingredients: { ing_crumbs: 1, ing_cake: 1 }, desc: 'Самая простая болтушка — варите её, чтобы прокачать навык прикормки!' },
+            { id: 'rec_base', chumId: 'chum_base', reqLvl: 2, outQty: 4, moneyCost: 160, skillXp: 10, ingredients: { ing_crumbs: 2, ing_cake: 1, ing_millet: 1 }, desc: 'Надёжная универсальная база для мирной рыбы.' },
+            { id: 'rec_anise', chumId: 'chum_anise', reqLvl: 3, outQty: 4, moneyCost: 320, skillXp: 14, ingredients: { ing_millet: 2, ing_anise: 1 }, desc: 'Анисовая смесь на карася, линя и Царь-Карася.' },
+            { id: 'rec_vanilla', chumId: 'chum_vanilla', reqLvl: 4, outQty: 4, moneyCost: 480, skillXp: 18, ingredients: { ing_crumbs: 2, ing_corn: 1, ing_vanilla: 1 }, desc: 'Сладкая ванильная прикормка для леща и плотвы.' },
+            { id: 'rec_carp', chumId: 'chum_carp', reqLvl: 5, outQty: 5, moneyCost: 750, skillXp: 24, ingredients: { ing_corn: 2, ing_cake: 1, ing_strawberry: 1 }, desc: 'Ароматный карповый микс на сазана и амура.' },
+            { id: 'rec_predator', chumId: 'chum_predator', reqLvl: 6, outQty: 5, moneyCost: 1150, skillXp: 30, ingredients: { ing_cake: 1, ing_blood: 2 }, desc: 'Кровавый шлейф для охоты на хищников.' },
+            { id: 'rec_catfish', chumId: 'chum_catfish', reqLvl: 7, outQty: 5, moneyCost: 1750, skillXp: 36, ingredients: { ing_liver: 2, ing_blood: 1 }, desc: 'Глубинный магнит на сомов, налима и осетров.' },
+            { id: 'rec_sea', chumId: 'chum_sea', reqLvl: 8, outQty: 5, moneyCost: 3600, skillXp: 45, ingredients: { ing_krill: 2, ing_liver: 1 }, desc: 'Элитная морская смесь на Белугу, Акул и Левиафана!' }
         ];
 
         var BLACK_MARKET_ITEMS = [
@@ -3893,11 +3901,10 @@
         function getRequiredXp(lvl) {
             if (lvl >= MAX_PLAYER_LEVEL) return 99999999;
             var base = 340 * Math.pow(lvl, 1.54) + (lvl - 1) * 240;
-            if (lvl > 42) {
-                base *= (1 + (lvl - 42) * 0.085);
-            }
-            if (lvl > 49) {
-                base *= 2;
+            if (lvl >= 40 && lvl <= 49) {
+                base *= (1 + (lvl - 39) * 0.14);
+            } else if (lvl > 49) {
+                base *= (1 + (lvl - 42) * 0.085) * 2;
             }
             return Math.floor(base);
         }
@@ -4659,23 +4666,37 @@
 
         function updateFocusLayout() {
             var isFocused = manualFocusMode || (fishingPhase !== 'idle');
+            var isActiveFight = (fishingPhase === 'reeling' || fishingPhase === 'biting' || fishingPhase === 'snagged');
             var stage = document.getElementById('lake-stage');
             var prep = document.getElementById('prep-panels-container');
             var locWrap = document.getElementById('prep-locations-wrap');
             var compact = document.getElementById('compact-rig-strip');
             var btn = document.getElementById('btn-toggle-focus');
+            var waterPill = document.getElementById('water-status-pill');
 
-            if (isFocused) {
+            if (isActiveFight) {
+                stage.classList.remove('focus-mode');
+                stage.classList.add('fight-mode');
+                prep.classList.add('hidden');
+                locWrap.classList.add('hidden');
+                compact.classList.add('hidden');
+                if (waterPill) waterPill.classList.toggle('hidden', fishingPhase === 'reeling');
+                btn.textContent = '🎒 Снасти';
+            } else if (isFocused) {
+                stage.classList.remove('fight-mode');
                 stage.classList.add('focus-mode');
                 prep.classList.add('hidden');
                 locWrap.classList.add('hidden');
                 compact.classList.remove('hidden');
+                if (waterPill) waterPill.classList.remove('hidden');
                 btn.textContent = '🎒 Снасти и наживки';
             } else {
                 stage.classList.remove('focus-mode');
+                stage.classList.remove('fight-mode');
                 prep.classList.remove('hidden');
                 locWrap.classList.remove('hidden');
                 compact.classList.add('hidden');
+                if (waterPill) waterPill.classList.remove('hidden');
                 btn.textContent = '👁️ Скрыть панель';
             }
         }
@@ -4909,7 +4930,7 @@
 
             var rig = getRigSummary();
             if (!rig.line || !rig.line.id || rig.line.maxKg <= 0) {
-                showToast('🧵 Леска порвана! Купите леску в Лавке Михалыча (порванная стоит в 2 раза дешевле).', '#ef4444');
+                showToast('🧵 Леска порвана! Купите леску в Лавке Михалыча (порванная стоит 25% цены).', '#ef4444');
                 return;
             }
             if (rig.effRodMaxKg <= 0.1) {
@@ -5274,7 +5295,7 @@
             var isRare = getActiveTrophyTier() === 'rare_trophy';
             applyGearWear(isRare ? 6.0 : 4.5, isRare ? 6.0 : 4.5);
 
-            // Разрыв лески: леска теряется, в Лавке её можно купить заново за полцены (50%)
+            // Разрыв лески: леска теряется, в Лавке её можно купить заново за 25% цены
             var brokenId = state.equipped.line;
             var brokenLineObj = findById(SHOP_GEAR.lines, brokenId);
             if (brokenId && state.ownedLines) {
@@ -5290,9 +5311,9 @@
             }
 
             resetFishingState(false);
-            var lineMsg = brokenLineObj ? (' Леска <b>' + brokenLineObj.name + '</b> порвана — купить её снова в Лавке можно за <b>50% цены</b>!') : '';
+            var lineMsg = brokenLineObj ? (' Леска <b>' + brokenLineObj.name + '</b> порвана — купить её снова в Лавке можно за <b>25% цены</b>!') : '';
             pushJournal('💥 <b>ОБРЫВ ЛЕСКИ!</b> ' + reasonText + ' — <b>' + nBreak + ' (' + wBreak.toFixed(2) + ' кг)</b> ушёл!' + lineMsg);
-            showToast(isSpoolEmpty ? '💥 ЛЕСКА РАЗМОТАНА ДО ЛИМИТА И ПОРВАЛАСЬ! (В Лавке -50%)' : '💥 ОБРЫВ ЛЕСКИ! Купите новую в Лавке за полцены!', '#ef4444');
+            showToast(isSpoolEmpty ? '💥 ЛЕСКА РАЗМОТАНА ДО ЛИМИТА И ПОРВАЛАСЬ! (В Лавке 25% цены)' : '💥 ОБРЫВ ЛЕСКИ! Купите новую в Лавке за 25% цены!', '#ef4444');
             persistState();
             renderAll();
         }
@@ -5472,12 +5493,12 @@
             var surgeTensionMult = surgeTicksLeft > 0 ? (1 + (prof.surgeMult - 1) * 0.65) : 1.0;
             var tensionAdd = (5.4 + weightRatio * 13.5) * cond.tensionMult * (0.45 + dragRatio * 0.68) * (0.55 + 0.45 * (fishStamina / 100)) * (0.85 + 0.15 * prof.resistanceMult) * surgeTensionMult;
 
-            fishDistance = Math.max(0, fishDistance - pullMeters);
+            var effectivePull = pullMeters;
             if (!isLocked) {
                 var capNow = Math.min(97, Math.round(18 + dragRatio * 80));
                 if (lineTension + tensionAdd > capNow && dragVal <= 28) {
                     lineTension = Math.min(98, capNow + 1);
-                    fishDistance = Math.min(prof.maxDistance, fishDistance + pullMeters * 0.45);
+                    effectivePull = pullMeters * 0.55;
                     playSfx('drag');
                 } else {
                     lineTension = Math.min(100, lineTension + tensionAdd);
@@ -5487,6 +5508,7 @@
                 lineTension = Math.min(100, lineTension + tensionAdd * 1.25);
                 playSfx('reel');
             }
+            fishDistance = Math.max(0, fishDistance - effectivePull);
 
             var activeDrain = (3.2 + rig.effReelPower * 0.9) * prof.staminaDecayMult * tr.staminaDrainMult * (0.6 + dragRatio * 0.55);
             fishStamina = Math.max(10, fishStamina - activeDrain);
@@ -5947,7 +5969,7 @@
                 var finalPrice = item.price;
                 var isDiscountedLine = (cat === 'lines' && state.brokenLines && state.brokenLines[itemId]);
                 if (isDiscountedLine) {
-                    finalPrice = item.price > 0 ? Math.floor(item.price * 0.5) : (state.money >= 50 ? 50 : 0);
+                    finalPrice = item.price > 0 ? Math.floor(item.price * 0.25) : (state.money >= 25 ? 25 : 0);
                 }
                 if (state.money < finalPrice) {
                     showToast('Не хватает рублей!', '#ef4444');
@@ -5958,7 +5980,7 @@
                 if (isDiscountedLine) delete state.brokenLines[itemId];
                 if (cat === 'rods' || cat === 'reels') setGearCondition(itemId, 100);
                 state.equipped[eqKey] = itemId;
-                pushJournal('🛒 Куплена и установлена снасть: <b>' + item.name + '</b>' + (isDiscountedLine ? ' (за полцены после обрыва!)' : '') + '.');
+                pushJournal('🛒 Куплена и установлена снасть: <b>' + item.name + '</b>' + (isDiscountedLine ? ' (за 25% цены после обрыва!)' : '') + '.');
                 showToast('✅ Куплено: ' + item.name, '#34d399');
             } else if (cat === 'baits') {
                 if (state.money < item.price) {
@@ -7099,8 +7121,8 @@
                         actionBtn = '<span style="font-size:11px; font-weight:800; color:#94a3b8;">🔒 Ур. ' + it.reqLvl + '</span>';
                     } else {
                         var isBrokenLine = (currentGearCat === 'lines' && state.brokenLines && state.brokenLines[it.id]);
-                        var dispPrice = isBrokenLine ? (it.price > 0 ? Math.floor(it.price * 0.5) : 50) : it.price;
-                        var btnTxt = isBrokenLine ? ('🏷️ ' + dispPrice.toLocaleString('ru-RU') + ' ₽ (−50%)') : (dispPrice.toLocaleString('ru-RU') + ' ₽');
+                        var dispPrice = isBrokenLine ? (it.price > 0 ? Math.floor(it.price * 0.25) : 25) : it.price;
+                        var btnTxt = isBrokenLine ? ('🏷️ ' + dispPrice.toLocaleString('ru-RU') + ' ₽ (25% цены)') : (dispPrice.toLocaleString('ru-RU') + ' ₽');
                         actionBtn = '<button type="button" onclick="buyGearItem(\'' + currentGearCat + '\', \'' + it.id + '\')" class="btn ' + (isBrokenLine ? 'btn-gold' : 'btn-primary') + ' btn-sm">' + btnTxt + '</button>';
                     }
                 } else if (currentGearCat === 'tools') {
@@ -8203,7 +8225,7 @@
 
         // 3. ВАРКА ПРИКОРМКИ И ПРОКАЧКА НАВЫКА ПРИКОРМКИ
         function getCraftXpNeeded(lvl) {
-            return lvl * 50;
+            return Math.floor(450 * Math.pow(lvl, 1.55));
         }
 
         function craftChumRecipe(recId) {
@@ -8529,9 +8551,9 @@
                 state.equipped.line = state.ownedLines.length > 0 ? state.ownedLines[state.ownedLines.length - 1] : null;
             }
             resetFishingState(false);
-            var lineMsg = brokenLineObj ? (' Леска <b>' + brokenLineObj.name + '</b> потеряна (в Лавке −50%).') : '';
+            var lineMsg = brokenLineObj ? (' Леска <b>' + brokenLineObj.name + '</b> потеряна (в Лавке 25% цены).') : '';
             pushJournal('💥 <b>ЗАЦЕП — МИНУС ЛЕСКА!</b> ' + reasonText + lineMsg);
-            showToast('💥 Минус леска! В Лавке можно купить её заново за полцены.', '#ef4444');
+            showToast('💥 Минус леска! В Лавке можно купить её заново за 25% цены.', '#ef4444');
             persistState();
             renderAll();
         }
