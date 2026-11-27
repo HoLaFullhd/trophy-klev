@@ -568,6 +568,96 @@
             animation: slotReelBounce 0.16s linear infinite;
             border-color: #38bdf8;
         }
+
+        .casino-rl-viewport {
+            position: relative;
+            width: 100%;
+            height: 66px;
+            overflow: hidden;
+            background: rgba(9, 14, 28, 0.96);
+            border: 2px solid rgba(251, 191, 36, 0.55);
+            border-radius: 13px;
+            margin: 8px 0 10px;
+            box-shadow: inset 0 0 22px rgba(0, 0, 0, 0.85);
+        }
+        .casino-rl-pointer {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 50%;
+            width: 3px;
+            transform: translateX(-50%);
+            background: linear-gradient(180deg, #ef4444, #fde047, #ef4444);
+            box-shadow: 0 0 10px #fde047;
+            z-index: 5;
+            pointer-events: none;
+        }
+        .casino-rl-pointer::before {
+            content: '▼';
+            position: absolute;
+            top: -4px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #fde047;
+            font-size: 12px;
+            text-shadow: 0 2px 4px #000;
+        }
+        .casino-rl-track {
+            display: flex;
+            align-items: center;
+            height: 100%;
+            will-change: transform;
+        }
+        .casino-rl-tile {
+            flex: 0 0 52px;
+            width: 52px;
+            height: 50px;
+            margin: 0 3px;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            font-size: 16px;
+            color: #fff;
+            border: 1.5px solid rgba(255, 255, 255, 0.16);
+            box-shadow: inset 0 2px 6px rgba(255,255,255,0.12);
+        }
+        .casino-rl-tile.rl-red { background: linear-gradient(145deg, #dc2626, #991b1b); border-color: rgba(248, 113, 113, 0.45); }
+        .casino-rl-tile.rl-black { background: linear-gradient(145deg, #334155, #0f172a); border-color: rgba(148, 163, 184, 0.35); }
+        .casino-rl-tile.rl-zero { background: linear-gradient(145deg, #10b981, #047857); border-color: rgba(52, 211, 153, 0.65); }
+        .casino-rl-tile.rl-win { box-shadow: 0 0 16px #fde047, inset 0 0 8px rgba(253,224,71,0.5); border-color: #fde047; transform: scale(1.06); }
+        .bj-hand {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            min-height: 58px;
+            align-items: center;
+        }
+        .bj-card {
+            width: 44px;
+            height: 60px;
+            border-radius: 8px;
+            background: linear-gradient(160deg, #ffffff, #e2e8f0);
+            color: #0f172a;
+            border: 1.5px solid #cbd5e1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            font-size: 14px;
+            line-height: 1.1;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.45);
+        }
+        .bj-card.red { color: #dc2626; }
+        .bj-card.back {
+            background: linear-gradient(135deg, #1e3a8a, #4c1d95);
+            color: #fde047;
+            border-color: #818cf8;
+            font-size: 20px;
+        }
     </style>
 </head>
 <body>
@@ -1815,13 +1905,75 @@
                         </button>
                     </div>
 
-                    <div class="card">
-                        <div style="font-size: 14px; font-weight: 900; color: #f87171; margin-bottom: 4px;">🎡 Быстрая рулетка на ставку (<span id="roulette-bet-label">500</span> ₽)</div>
-                        <div style="font-size: 11px; color: #94a3b8; margin-bottom: 8px;">Красное / Чёрное выплачивают <b>x2</b>, Зеро (0) — <b>x14</b>!</div>
+                    <div class="card" style="border-color: rgba(248, 113, 113, 0.35);">
+                        <div style="font-size: 14px; font-weight: 900; color: #f87171; margin-bottom: 3px;">🎡 Рулетка: Красное / Чёрное / Зеро (<span id="roulette-bet-label">500</span> ₽)</div>
+                        <div style="font-size: 11px; color: #94a3b8; margin-bottom: 4px;">Красное / Чёрное выплачивают <b>x2</b>, Зеро (0) — <b>x14</b>!</div>
+
+                        <div id="casino-rl-viewport" class="casino-rl-viewport">
+                            <div class="casino-rl-pointer"></div>
+                            <div id="casino-rl-track" class="casino-rl-track">
+                                <div class="casino-rl-tile rl-red">1</div>
+                                <div class="casino-rl-tile rl-black">2</div>
+                                <div class="casino-rl-tile rl-red">3</div>
+                                <div class="casino-rl-tile rl-zero">0</div>
+                                <div class="casino-rl-tile rl-black">4</div>
+                                <div class="casino-rl-tile rl-red">5</div>
+                                <div class="casino-rl-tile rl-black">6</div>
+                                <div class="casino-rl-tile rl-red">7</div>
+                            </div>
+                        </div>
+
+                        <div id="casino-rl-status" style="text-align:center; font-size:12px; font-weight:800; color:#94a3b8; margin-bottom:8px;">
+                            Выберите цвет и запустите прокрутку!
+                        </div>
+
                         <div style="display: grid; grid-template-columns: 1fr 1fr 0.75fr; gap: 6px;">
-                            <button type="button" onclick="playCasinoRoulette('red')" class="btn btn-danger btn-sm" style="padding: 11px 6px;">🔴 Красное (x2)</button>
-                            <button type="button" onclick="playCasinoRoulette('black')" class="btn btn-secondary btn-sm" style="padding: 11px 6px; border-color:#64748b;">⚫ Чёрное (x2)</button>
-                            <button type="button" onclick="playCasinoRoulette('zero')" class="btn btn-primary btn-sm" style="padding: 11px 6px;">🟢 0 (x14)</button>
+                            <button id="btn-rl-red" type="button" onclick="playCasinoRoulette('red')" class="btn btn-danger btn-sm" style="padding: 11px 6px;">🔴 Красное (x2)</button>
+                            <button id="btn-rl-black" type="button" onclick="playCasinoRoulette('black')" class="btn btn-secondary btn-sm" style="padding: 11px 6px; border-color:#64748b;">⚫ Чёрное (x2)</button>
+                            <button id="btn-rl-zero" type="button" onclick="playCasinoRoulette('zero')" class="btn btn-primary btn-sm" style="padding: 11px 6px;">🟢 0 (x14)</button>
+                        </div>
+                    </div>
+
+                    <div class="card" style="background: linear-gradient(135deg, rgba(6, 78, 59, 0.42), rgba(15, 23, 42, 0.96)); border-color: rgba(52, 211, 153, 0.45);">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 6px;">
+                            <div>
+                                <div style="font-size: 15px; font-weight: 900; color: #6ee7b7;">🃏 Игра «21» (Блэкджек)</div>
+                                <div style="font-size: 11px; color: #cbd5e1;">Наберите ближе к 21, чем дилер. Победа <b>x2</b>, Блэкджек с раздачи <b>x2.5</b>!</div>
+                            </div>
+                        </div>
+
+                        <div style="background: rgba(9, 14, 28, 0.65); border-radius: 12px; padding: 8px 10px; margin-bottom: 8px; border: 1px solid rgba(52, 211, 153, 0.2);">
+                            <div style="display:flex; justify-content:space-between; font-size:11px; font-weight:800; color:#94a3b8; margin-bottom:4px;">
+                                <span>🎩 Дилер</span>
+                                <span id="bj-dealer-score">Счёт: —</span>
+                            </div>
+                            <div id="bj-dealer-hand" class="bj-hand" style="margin-bottom: 8px;">
+                                <div class="bj-card back">🂠</div>
+                                <div class="bj-card back">🂠</div>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; font-size:11px; font-weight:800; color:#6ee7b7; margin-bottom:4px;">
+                                <span>🎣 Ваши карты</span>
+                                <span id="bj-player-score">Счёт: —</span>
+                            </div>
+                            <div id="bj-player-hand" class="bj-hand">
+                                <div class="bj-card back">🂠</div>
+                                <div class="bj-card back">🂠</div>
+                            </div>
+                        </div>
+
+                        <div id="bj-status" style="text-align:center; font-size:12px; font-weight:800; color:#fde68a; margin-bottom:8px;">
+                            Нажмите «Раздать», чтобы начать партию в 21!
+                        </div>
+
+                        <div id="bj-controls-idle">
+                            <button type="button" onclick="startBlackjack()" class="btn btn-primary btn-lg">
+                                🃏 РАЗДАТЬ КАРТЫ (<span id="bj-bet-label">500</span> ₽)
+                            </button>
+                        </div>
+                        <div id="bj-controls-play" class="hidden" style="display:grid; grid-template-columns: 1fr 1fr 0.85fr; gap: 6px;">
+                            <button type="button" onclick="bjHit()" class="btn btn-primary btn-sm" style="padding: 11px 6px;">➕ Ещё</button>
+                            <button type="button" onclick="bjStand()" class="btn btn-gold btn-sm" style="padding: 11px 6px;">✋ Хватит</button>
+                            <button id="btn-bj-double" type="button" onclick="bjDouble()" class="btn btn-purple btn-sm" style="padding: 11px 6px;">⚡ x2</button>
                         </div>
                     </div>
                 </div>
@@ -2748,7 +2900,8 @@
                 { id: 'reel_ryobi', name: 'Катушка «Ryobi Pond-25»', maxKg: 25.0, power: 1.32, price: 4600, reqLvl: 3, desc: 'Ровно 25 кг — идеальная пара для Пруда!' },
                 { id: 'reel_shimano_stradic', name: '«Shimano River-75 Pro»', maxKg: 75.0, power: 1.52, price: 24000, reqLvl: 6, desc: 'Тяговая катушка на 75 кг для Быстрой реки.' },
                 { id: 'reel_excl_gold', name: '👑 «Founder\'s Gold 120»', maxKg: 120.0, power: 1.85, price: 0, reqLvl: 1, isExclusive: true, desc: 'Эксклюзивная золотая катушка (120 кг) события «Открытие Проекта»!' },
-                { id: 'reel_daiwa_saltiga', name: '«Daiwa Lake-400 Saltiga»', maxKg: 400.0, power: 1.95, price: 135000, reqLvl: 18, desc: 'Мощнейшая катушка на 400 кг для Глубокого озера.' },
+                { id: 'reel_okuma_200', name: 'Силовая «Okuma Lake-200»', maxKg: 200.0, power: 1.74, price: 68000, reqLvl: 18, desc: 'Переходная силовая катушка на 200 кг для Глубокого озера.' },
+                { id: 'reel_daiwa_saltiga', name: '«Daiwa Lake-400 Saltiga»', maxKg: 400.0, power: 1.95, price: 135000, reqLvl: 23, desc: 'Мощнейшая катушка на 400 кг для Глубокого озера.' },
                 { id: 'reel_tiagra', name: 'Мультипликатор «Shimano Fjord-700»', maxKg: 700.0, power: 2.35, price: 490000, reqLvl: 30, desc: 'Двухскоростная лебёдка на 700 кг для Северного Фьорда.' },
                 { id: 'reel_avet_trx', name: 'Лебёдка «Avet T-RX Quad 1200»', maxKg: 1200.0, power: 2.85, price: 1550000, reqLvl: 42, desc: 'Морской мультипликатор на 1 200 кг для Каспийского Залива!' },
                 { id: 'reel_selva_1550', name: 'Силовая «Shimano Selva-1550»', maxKg: 1550.0, power: 3.10, price: 2250000, reqLvl: 50, desc: 'Мощная тропическая катушка для гигантов Рио-Негро (тяга 1 550 кг).' },
@@ -2759,7 +2912,8 @@
                 { id: 'line_mono8', name: 'Флюорокарбон 0.32 (14 кг)', maxKg: 14.0, lengthM: 85, price: 750, reqLvl: 2, desc: 'Малозаметна в чистой воде (14 кг).' },
                 { id: 'line_braid25', name: 'Плетёнка «PowerPro Pond» (25 кг)', maxKg: 25.0, lengthM: 105, price: 3100, reqLvl: 3, desc: 'Ровно 25 кг — максимальная леска для Лесного пруда.' },
                 { id: 'line_braid75', name: 'Шнур «YGK River-75 X8» (75 кг)', maxKg: 75.0, lengthM: 125, price: 15000, reqLvl: 6, desc: 'Восьмижильный шнур на 75 кг для Быстрой реки.' },
-                { id: 'line_lake400', name: 'Кевларовая нить «Abyss-400» (400 кг)', maxKg: 400.0, lengthM: 155, price: 85000, reqLvl: 18, desc: 'Сверхпрочный шнур на 400 кг для Глубокого озера.' },
+                { id: 'line_braid200', name: 'Шнур «PowerBraid Lake-200» (200 кг)', maxKg: 200.0, lengthM: 140, price: 42000, reqLvl: 18, desc: 'Мощный плетёный шнур на 200 кг для Глубокого озера.' },
+                { id: 'line_lake400', name: 'Кевларовая нить «Abyss-400» (400 кг)', maxKg: 400.0, lengthM: 155, price: 85000, reqLvl: 23, desc: 'Сверхпрочный шнур на 400 кг для Глубокого озера.' },
                 { id: 'line_fjord700', name: 'Морской трос «Fjord-700» (700 кг)', maxKg: 700.0, lengthM: 185, price: 340000, reqLvl: 30, desc: 'Армированная плетёнка на 700 кг для Северного Фьорда.' },
                 { id: 'line_steel1200', name: 'Стальной трос «Каспий-1200» (1200 кг)', maxKg: 1200.0, lengthM: 215, price: 960000, reqLvl: 42, desc: 'Титаново-стальной трос на 1 200 кг для Белуги в Каспии.' },
                 { id: 'line_anaconda_1520', name: 'Плетёный трос «Anaconda-1520» (1520 кг)', maxKg: 1520.0, lengthM: 245, price: 1600000, reqLvl: 50, desc: 'Сверхпрочный плетёный трос на разрыв 1 520 кг для Амазонской Сельвы.' },
@@ -2770,7 +2924,8 @@
                 { id: 'hook_10', name: 'Крючок №10 «Универсал» (0.1–14 кг)', minW: 0.1, maxKg: 14.0, price: 650, reqLvl: 2, desc: 'Отлично держит карася, леща, линя и окуня (до 14 кг).' },
                 { id: 'hook_6', name: 'Крючок №6 «Пруд-Макс» (0.4–25 кг)', minW: 0.4, maxKg: 25.0, price: 2500, reqLvl: 3, desc: 'Максимальный крюк для Пруда (25 кг), держит Черепашьего карпа.' },
                 { id: 'hook_2', name: 'Крючок №2 «Речной Титан» (1.5–75 кг)', minW: 1.5, maxKg: 75.0, price: 11500, reqLvl: 6, desc: 'Кованый крюк на 75 кг для тайменя и речной белуги.' },
-                { id: 'hook_5_0', name: 'Гак №5/0 «Озёрный Исполин» (8–400 кг)', minW: 8.0, maxKg: 400.0, price: 68000, reqLvl: 18, desc: 'Мощный крюк на 400 кг для сомов-левиафанов и дракон-осетров.' },
+                { id: 'hook_2_0', name: 'Гак №2/0 «Озёрный Силовик» (4–200 кг)', minW: 4.0, maxKg: 200.0, price: 32000, reqLvl: 18, desc: 'Крепкий озёрный крюк на 200 кг для крупного сома и веслоноса.' },
+                { id: 'hook_5_0', name: 'Гак №5/0 «Озёрный Исполин» (8–400 кг)', minW: 8.0, maxKg: 400.0, price: 68000, reqLvl: 23, desc: 'Мощный крюк на 400 кг для сомов-левиафанов и дракон-осетров.' },
                 { id: 'hook_12_0', name: 'Морской гак №12/0 «Фьорд» (25–700 кг)', minW: 25.0, maxKg: 700.0, price: 280000, reqLvl: 30, desc: 'Полярный кованый крюк на 700 кг для палтуса и гренландской акулы.' },
                 { id: 'hook_16_0', name: 'Кованый якорь-гак №16/0 «Каспий» (60–1200 кг)', minW: 60.0, maxKg: 1200.0, price: 640000, reqLvl: 42, desc: 'Исполинский крюк на 1 200 кг для Белуги-Императрицы!' },
                 { id: 'hook_18_0', name: 'Кованый гак №18/0 «Пиранья» (90–1520 кг)', minW: 90.0, maxKg: 1520.0, price: 1100000, reqLvl: 50, desc: 'Мощный тропический крюк на 90–1 520 кг для арапаимы, пираибы и пилорыла.' },
@@ -7614,12 +7769,17 @@
             if (clubBtn) clubBtn.className = sub === 'club' ? 'btn btn-purple btn-sm' : 'btn btn-secondary btn-sm';
         }
 
+        var isRouletteSpinning = false;
+        var bjState = { active: false, deck: [], player: [], dealer: [], bet: 0 };
+
         function selectCasinoBet(amount) {
             currentCasinoBet = amount;
             var lbl1 = document.getElementById('casino-bet-label');
             var lbl2 = document.getElementById('roulette-bet-label');
+            var lbl3 = document.getElementById('bj-bet-label');
             if (lbl1) lbl1.textContent = amount.toLocaleString('ru-RU');
             if (lbl2) lbl2.textContent = amount.toLocaleString('ru-RU');
+            if (lbl3) lbl3.textContent = amount.toLocaleString('ru-RU');
             var chips = document.querySelectorAll('#leisure-casino-panel .chip[data-cbet]');
             for (var i = 0; i < chips.length; i++) {
                 chips[i].classList.toggle('active', parseInt(chips[i].getAttribute('data-cbet'), 10) === amount);
@@ -7632,7 +7792,8 @@
                 showToast('Недостаточно рублей для ставки!', '#ef4444');
                 return;
             }
-            state.money -= currentCasinoBet;
+            var betNow = currentCasinoBet;
+            state.money -= betNow;
             isCasinoSpinning = true;
             persistState();
             renderAll();
@@ -7643,33 +7804,52 @@
                 document.getElementById('casino-reel-1'),
                 document.getElementById('casino-reel-2')
             ];
+            var res = [
+                symbols[Math.floor(Math.random() * symbols.length)],
+                symbols[Math.floor(Math.random() * symbols.length)],
+                symbols[Math.floor(Math.random() * symbols.length)]
+            ];
+            var stopped = [false, false, false];
             for (var i = 0; i < 3; i++) {
                 if (rEls[i]) rEls[i].classList.add('spinning');
             }
             var stEl = document.getElementById('casino-slot-status');
-            if (stEl) stEl.textContent = '🎰 Барабаны крутятся...';
+            if (stEl) stEl.textContent = '🎰 Барабаны раскручиваются...';
 
-            setTimeout(function() {
-                var res = [
-                    symbols[Math.floor(Math.random() * symbols.length)],
-                    symbols[Math.floor(Math.random() * symbols.length)],
-                    symbols[Math.floor(Math.random() * symbols.length)]
-                ];
-                for (var j = 0; j < 3; j++) {
-                    if (rEls[j]) {
-                        rEls[j].classList.remove('spinning');
-                        rEls[j].textContent = res[j];
+            var tickInt = setInterval(function() {
+                for (var k = 0; k < 3; k++) {
+                    if (!stopped[k] && rEls[k]) {
+                        rEls[k].textContent = symbols[Math.floor(Math.random() * symbols.length)];
                     }
                 }
+            }, 85);
+
+            function stopReel(idx, delayMs) {
+                setTimeout(function() {
+                    stopped[idx] = true;
+                    if (rEls[idx]) {
+                        rEls[idx].classList.remove('spinning');
+                        rEls[idx].textContent = res[idx];
+                    }
+                    playSfx('reel');
+                }, delayMs);
+            }
+
+            stopReel(0, 650);
+            stopReel(1, 1150);
+            stopReel(2, 1650);
+
+            setTimeout(function() {
+                clearInterval(tickInt);
                 isCasinoSpinning = false;
 
                 var win = 0;
                 if (res[0] === res[1] && res[1] === res[2]) {
                     var mult = res[0] === '💎' ? 15 : (res[0] === '👑' ? 10 : (res[0] === '🪝' ? 7 : 4));
-                    win = currentCasinoBet * mult;
+                    win = betNow * mult;
                     if (res[0] === '🪝') state.goldenHooks = (state.goldenHooks || 0) + 3;
                 } else if (res[0] === res[1] || res[1] === res[2] || res[0] === res[2]) {
-                    win = Math.round(currentCasinoBet * 1.5);
+                    win = Math.round(betNow * 1.5);
                 }
 
                 if (win > 0) {
@@ -7677,38 +7857,272 @@
                     state.stats.totalEarned = (state.stats.totalEarned || 0) + win;
                     if (stEl) stEl.innerHTML = '<span style="color:#34d399;">🎉 ВЫИГРЫШ: +' + win.toLocaleString('ru-RU') + ' ₽!</span>';
                     pushJournal('🎰 В казино «Золотой Поплавок» вы выиграли <b>' + win.toLocaleString('ru-RU') + ' ₽</b>!');
-                    showToast('🎉 Джекпот! +' + win.toLocaleString('ru-RU') + ' ₽', '#fbbf24');
+                    showToast('🎉 Выигрыш в слотах! +' + win.toLocaleString('ru-RU') + ' ₽', '#fbbf24');
+                    playSfx('catch');
                 } else {
                     if (stEl) stEl.innerHTML = '<span style="color:#f87171;">Мимо! Попробуйте ещё раз.</span>';
                 }
                 persistState();
                 renderAll();
-            }, 900);
+            }, 1780);
         }
 
         function playCasinoRoulette(choice) {
-            if (!state) return;
+            if (!state || isRouletteSpinning) return;
+            if (state.money < currentCasinoBet) {
+                showToast('Недостаточно рублей для ставки!', '#ef4444');
+                return;
+            }
+            var betNow = currentCasinoBet;
+            state.money -= betNow;
+            isRouletteSpinning = true;
+            persistState();
+            renderAll();
+
+            var roll = Math.floor(Math.random() * 37);
+            var outcome = roll === 0 ? 'zero' : (roll % 2 === 0 ? 'black' : 'red');
+            var label = roll === 0 ? '🟢 0 (Зеро)' : (outcome === 'red' ? '🔴 ' + roll + ' Красное' : '⚫ ' + roll + ' Чёрное');
+
+            var track = document.getElementById('casino-rl-track');
+            var viewport = document.getElementById('casino-rl-viewport');
+            var stEl = document.getElementById('casino-rl-status');
+            if (stEl) stEl.innerHTML = '<span style="color:#38bdf8;">🎡 Колесо крутится...</span>';
+
+            var winIndex = 36;
+            var totalTiles = 46;
+            var htmlTiles = '';
+            for (var i = 0; i < totalTiles; i++) {
+                var num = (i === winIndex) ? roll : Math.floor(Math.random() * 37);
+                var cls = num === 0 ? 'rl-zero' : (num % 2 === 0 ? 'rl-black' : 'rl-red');
+                htmlTiles += '<div class="casino-rl-tile ' + cls + '" data-rlidx="' + i + '">' + num + '</div>';
+            }
+
+            if (track && viewport) {
+                track.style.transition = 'none';
+                track.style.transform = 'translateX(0px)';
+                track.innerHTML = htmlTiles;
+                void track.offsetWidth;
+
+                var tileStep = 58; // 52px + 6px margin
+                var vpWidth = viewport.clientWidth || 320;
+                var jitter = Math.floor((Math.random() - 0.5) * 28);
+                var targetX = (winIndex * tileStep + 29) - (vpWidth / 2) + jitter;
+
+                track.style.transition = 'transform 3.1s cubic-bezier(0.12, 0.85, 0.16, 1)';
+                track.style.transform = 'translateX(-' + Math.round(targetX) + 'px)';
+            }
+
+            var tickCount = 0;
+            var rlTick = setInterval(function() {
+                tickCount++;
+                if (tickCount <= 12) playSfx('reel');
+                else clearInterval(rlTick);
+            }, 210);
+
+            setTimeout(function() {
+                clearInterval(rlTick);
+                isRouletteSpinning = false;
+                if (track) {
+                    var winEl = track.querySelector('[data-rlidx="' + winIndex + '"]');
+                    if (winEl) winEl.classList.add('rl-win');
+                }
+                if (outcome === choice) {
+                    var mult = choice === 'zero' ? 14 : 2;
+                    var win = betNow * mult;
+                    state.money += win;
+                    state.stats.totalEarned = (state.stats.totalEarned || 0) + win;
+                    if (stEl) stEl.innerHTML = '<span style="color:#34d399;">🎉 ' + label + ' — Победа! +' + win.toLocaleString('ru-RU') + ' ₽</span>';
+                    showToast(label + ' — Победа! +' + win.toLocaleString('ru-RU') + ' ₽', '#34d399');
+                    pushJournal('🎡 Рулетка: выпало <b>' + label + '</b>, выигрыш <b>+' + win.toLocaleString('ru-RU') + ' ₽</b>!');
+                    playSfx('catch');
+                } else {
+                    if (stEl) stEl.innerHTML = '<span style="color:#f87171;">' + label + ' — Ставка не сыграла!</span>';
+                    showToast(label + ' — Ставка не сыграла!', '#ef4444');
+                }
+                persistState();
+                renderAll();
+            }, 3200);
+        }
+
+        /* ==================== ИГРА «21» (БЛЭКДЖЕК) ==================== */
+        function createBjDeck() {
+            var suits = ['♠', '♥', '♦', '♣'];
+            var ranks = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
+            var d = [];
+            for (var s = 0; s < suits.length; s++) {
+                for (var r = 0; r < ranks.length; r++) {
+                    d.push({ rank: ranks[r], suit: suits[s] });
+                }
+            }
+            for (var i = d.length - 1; i > 0; i--) {
+                var j = Math.floor(Math.random() * (i + 1));
+                var t = d[i]; d[i] = d[j]; d[j] = t;
+            }
+            return d;
+        }
+
+        function calcBjScore(hand) {
+            var total = 0;
+            var aces = 0;
+            for (var i = 0; i < hand.length; i++) {
+                var r = hand[i].rank;
+                if (r === 'A') { total += 11; aces += 1; }
+                else if (r === 'K' || r === 'Q' || r === 'J') total += 10;
+                else total += parseInt(r, 10);
+            }
+            while (total > 21 && aces > 0) {
+                total -= 10;
+                aces -= 1;
+            }
+            return total;
+        }
+
+        function renderBjCardHtml(card, hidden) {
+            if (hidden) return '<div class="bj-card back">🂠</div>';
+            var isRed = (card.suit === '♥' || card.suit === '♦');
+            return '<div class="bj-card ' + (isRed ? 'red' : '') + '"><span>' + card.rank + '</span><span style="font-size:16px;">' + card.suit + '</span></div>';
+        }
+
+        function renderBlackjackUI(revealDealer) {
+            var dHand = document.getElementById('bj-dealer-hand');
+            var pHand = document.getElementById('bj-player-hand');
+            var dScore = document.getElementById('bj-dealer-score');
+            var pScore = document.getElementById('bj-player-score');
+            var ctrlIdle = document.getElementById('bj-controls-idle');
+            var ctrlPlay = document.getElementById('bj-controls-play');
+            var btnDbl = document.getElementById('btn-bj-double');
+
+            if (dHand) {
+                dHand.innerHTML = bjState.dealer.map(function(c, idx) {
+                    return renderBjCardHtml(c, !revealDealer && idx === 1);
+                }).join('');
+            }
+            if (pHand) {
+                pHand.innerHTML = bjState.player.map(function(c) {
+                    return renderBjCardHtml(c, false);
+                }).join('');
+            }
+            if (dScore) {
+                if (revealDealer) {
+                    dScore.textContent = 'Счёт: ' + calcBjScore(bjState.dealer);
+                } else {
+                    dScore.textContent = 'Счёт: ' + (bjState.dealer.length ? calcBjScore([bjState.dealer[0]]) + ' + ?' : '—');
+                }
+            }
+            if (pScore) {
+                pScore.textContent = 'Счёт: ' + calcBjScore(bjState.player);
+            }
+            if (ctrlIdle) ctrlIdle.classList.toggle('hidden', bjState.active);
+            if (ctrlPlay) ctrlPlay.classList.toggle('hidden', !bjState.active);
+            if (btnDbl) {
+                var canDouble = bjState.active && bjState.player.length === 2 && state && state.money >= bjState.bet;
+                btnDbl.style.opacity = canDouble ? '1' : '0.45';
+            }
+        }
+
+        function finishBlackjack(msgHtml, winAmount, toastColor) {
+            bjState.active = false;
+            renderBlackjackUI(true);
+            var stEl = document.getElementById('bj-status');
+            if (stEl) stEl.innerHTML = msgHtml;
+
+            if (winAmount > 0) {
+                state.money += winAmount;
+                if (winAmount > bjState.bet) {
+                    state.stats.totalEarned = (state.stats.totalEarned || 0) + (winAmount - bjState.bet);
+                    pushJournal('🃏 В «21» вы выиграли <b>' + winAmount.toLocaleString('ru-RU') + ' ₽</b>!');
+                    playSfx('catch');
+                }
+            }
+            showToast(stEl ? stEl.textContent : 'Партия завершена', toastColor || '#34d399');
+            persistState();
+            renderAll();
+        }
+
+        function startBlackjack() {
+            if (!state || bjState.active) return;
             if (state.money < currentCasinoBet) {
                 showToast('Недостаточно рублей для ставки!', '#ef4444');
                 return;
             }
             state.money -= currentCasinoBet;
-            var roll = Math.floor(Math.random() * 37);
-            var outcome = roll === 0 ? 'zero' : (roll % 2 === 0 ? 'black' : 'red');
-            var label = roll === 0 ? '🟢 0 (Зеро)' : (outcome === 'red' ? '🔴 ' + roll + ' Красное' : '⚫ ' + roll + ' Чёрное');
+            bjState.bet = currentCasinoBet;
+            bjState.deck = createBjDeck();
+            bjState.player = [bjState.deck.pop(), bjState.deck.pop()];
+            bjState.dealer = [bjState.deck.pop(), bjState.deck.pop()];
+            bjState.active = true;
+            playSfx('reel');
 
-            if (outcome === choice) {
-                var mult = choice === 'zero' ? 14 : 2;
-                var win = currentCasinoBet * mult;
-                state.money += win;
-                state.stats.totalEarned = (state.stats.totalEarned || 0) + win;
-                showToast(label + ' — Победа! +' + win.toLocaleString('ru-RU') + ' ₽', '#34d399');
-                pushJournal('🎡 Рулетка: выпало <b>' + label + '</b>, выигрыш <b>+' + win.toLocaleString('ru-RU') + ' ₽</b>!');
-            } else {
-                showToast(label + ' — Ставка не сыграла!', '#ef4444');
+            var pVal = calcBjScore(bjState.player);
+            var dVal = calcBjScore(bjState.dealer);
+
+            if (pVal === 21) {
+                if (dVal === 21) {
+                    finishBlackjack('<span style="color:#fde047;">🤝 Ничья (оба по 21)! Ставка возвращена.</span>', bjState.bet, '#fde047');
+                } else {
+                    var bjWin = Math.round(bjState.bet * 2.5);
+                    finishBlackjack('<span style="color:#34d399;">👑 БЛЭКДЖЕК 21! Выигрыш +' + bjWin.toLocaleString('ru-RU') + ' ₽!</span>', bjWin, '#fbbf24');
+                }
+                return;
             }
+
+            var stEl = document.getElementById('bj-status');
+            if (stEl) stEl.textContent = 'Ваш ход: берите карту или остановитесь.';
+            renderBlackjackUI(false);
             persistState();
             renderAll();
+        }
+
+        function bjHit() {
+            if (!bjState.active) return;
+            bjState.player.push(bjState.deck.pop());
+            playSfx('reel');
+            var pVal = calcBjScore(bjState.player);
+            if (pVal > 21) {
+                finishBlackjack('<span style="color:#f87171;">💥 Перебор (' + pVal + ')! Ставка сгорела.</span>', 0, '#ef4444');
+                return;
+            }
+            if (pVal === 21) {
+                bjStand();
+                return;
+            }
+            renderBlackjackUI(false);
+        }
+
+        function bjDouble() {
+            if (!bjState.active || bjState.player.length !== 2) return;
+            if (state.money < bjState.bet) {
+                showToast('Не хватает рублей для удвоения!', '#ef4444');
+                return;
+            }
+            state.money -= bjState.bet;
+            bjState.bet *= 2;
+            bjState.player.push(bjState.deck.pop());
+            playSfx('reel');
+            var pVal = calcBjScore(bjState.player);
+            if (pVal > 21) {
+                finishBlackjack('<span style="color:#f87171;">💥 Удвоение и перебор (' + pVal + ')!</span>', 0, '#ef4444');
+                return;
+            }
+            bjStand();
+        }
+
+        function bjStand() {
+            if (!bjState.active) return;
+            while (calcBjScore(bjState.dealer) < 17) {
+                bjState.dealer.push(bjState.deck.pop());
+            }
+            var pVal = calcBjScore(bjState.player);
+            var dVal = calcBjScore(bjState.dealer);
+
+            if (dVal > 21 || pVal > dVal) {
+                var win = bjState.bet * 2;
+                finishBlackjack('<span style="color:#34d399;">🎉 Победа (' + pVal + ' против ' + dVal + ')! +' + win.toLocaleString('ru-RU') + ' ₽</span>', win, '#34d399');
+            } else if (pVal === dVal) {
+                finishBlackjack('<span style="color:#fde047;">🤝 Ничья (' + pVal + ' : ' + dVal + ')! Ставка возвращена.</span>', bjState.bet, '#fde047');
+            } else {
+                finishBlackjack('<span style="color:#f87171;">😔 Дилер выиграл (' + dVal + ' против ' + pVal + ').</span>', 0, '#ef4444');
+            }
         }
 
         function orderClubService(tier) {
