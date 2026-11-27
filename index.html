@@ -1529,7 +1529,6 @@
                         <button type="button" class="chip" data-gcat="nets" onclick="selectGearCat('nets')">Садки</button>
                         <button type="button" class="chip" data-gcat="tools" onclick="selectGearCat('tools')">🧲 Приборы</button>
                         <button type="button" class="chip" data-gcat="baits" onclick="selectGearCat('baits')">Наживки</button>
-                        <button type="button" class="chip" data-gcat="chums" onclick="selectGearCat('chums')">Прикормки</button>
                         <button type="button" class="chip" data-gcat="ingredients" onclick="selectGearCat('ingredients')">🌾 Ингредиенты</button>
                     </div>
                     <div id="shop-gear-list" style="display: flex; flex-direction: column; gap: 7px;"></div>
@@ -4647,7 +4646,7 @@
                 return;
             }
             if ((state.chums[chumId] || 0) <= 0) {
-                showToast('Эта прикормка закончилась! Купите в лавке Михалыча.', '#ef4444');
+                showToast('Эта прикормка закончилась! Сварите её во вкладке «🥣 Прикорм».', '#ef4444');
                 return;
             }
             state.chums[chumId] -= 1;
@@ -5992,13 +5991,8 @@
                 state.selectedBait = item.id;
                 showToast('🪱 Куплено: ' + item.name + ' (+' + item.qty + ' шт.)', '#34d399');
             } else if (cat === 'chums') {
-                if (state.money < item.price) {
-                    showToast('Не хватает рублей на прикормку!', '#ef4444');
-                    return;
-                }
-                state.money -= item.price;
-                state.chums[item.id] = (state.chums[item.id] || 0) + item.qty;
-                showToast('🌾 Куплено: ' + item.name + ' (+' + item.qty + ' порц.)', '#34d399');
+                showToast('🥣 Готовую прикормку больше нельзя купить — варите её во вкладке «🥣 Прикорм»!', '#fbbf24');
+                return;
             } else if (cat === 'ingredients') {
                 if (state.money < item.price) {
                     showToast('Не хватает рублей на ингредиент!', '#ef4444');
@@ -7064,8 +7058,8 @@
             }
 
             var gearList = document.getElementById('shop-gear-list');
+            if (currentGearCat === 'chums') currentGearCat = 'ingredients';
             var items = (SHOP_GEAR[currentGearCat] || []).filter(function(it) {
-                if (currentGearCat === 'chums' && it.craftOnly) return false;
                 if (currentGearCat === 'baits' && it.blackMarketOnly) return false;
                 return true;
             });
