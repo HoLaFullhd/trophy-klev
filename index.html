@@ -718,18 +718,6 @@
             border-color: rgba(253, 224, 71, 0.9);
             animation: reelWheelSpin 0.65s linear infinite;
         }
-        .fight-status-pill {
-            font-size: 13.5px;
-            font-weight: 900;
-            text-align: center;
-            padding: 8px 10px;
-            border-radius: 12px;
-            margin-bottom: 8px;
-            border: 1.5px solid rgba(52, 211, 153, 0.45);
-            background: rgba(16, 185, 129, 0.16);
-            color: #6ee7b7;
-            letter-spacing: 0.01em;
-        }
         .pond-section-label {
             font-size: 12.5px;
             font-weight: 800;
@@ -1523,10 +1511,6 @@
                     </div>
 
                     <div id="reeling-action-box" class="hidden">
-                        <!-- Понятный статус: что происходит и что делать -->
-                        <div id="fight-status-pill" class="fight-status-pill">
-                            🟢 МОЖНО МОТАТЬ — зажми катушку!
-                        </div>
                         <span id="fight-fish-hint" class="hidden"></span>
                         <span id="fight-trait-text" class="hidden"></span>
                         <span id="fight-surge-text" class="hidden"></span>
@@ -7073,31 +7057,7 @@
             var distEl = document.getElementById('fight-distance-text');
             if (distEl) distEl.textContent = fishDistance.toFixed(1) + ' м';
 
-            var pillEl = document.getElementById('fight-status-pill');
             var wheelBtn = document.getElementById('btn-reel-wheel');
-            if (pillEl) {
-                if (pct >= 82) {
-                    pillEl.textContent = '🔴 ОПАСНО! ОТПУСТИ КАТУШКУ И ОСЛАБЬ ФРИКЦИОН!';
-                    pillEl.style.background = 'rgba(239, 68, 68, 0.25)';
-                    pillEl.style.borderColor = '#ef4444';
-                    pillEl.style.color = '#fca5a5';
-                } else if (surgeTicksLeft > 0) {
-                    pillEl.textContent = '🔥 РЫВОК РЫБЫ! Подожди или ослабь фрикцион';
-                    pillEl.style.background = 'rgba(245, 158, 11, 0.22)';
-                    pillEl.style.borderColor = '#f59e0b';
-                    pillEl.style.color = '#fde047';
-                } else if (pct >= 62) {
-                    pillEl.textContent = '🟡 ОСТОРОЖНО — натяжение растёт';
-                    pillEl.style.background = 'rgba(245, 158, 11, 0.16)';
-                    pillEl.style.borderColor = 'rgba(251, 191, 36, 0.55)';
-                    pillEl.style.color = '#fde68a';
-                } else {
-                    pillEl.textContent = '🟢 МОЖНО МОТАТЬ — зажми катушку!';
-                    pillEl.style.background = 'rgba(16, 185, 129, 0.18)';
-                    pillEl.style.borderColor = 'rgba(52, 211, 153, 0.5)';
-                    pillEl.style.color = '#6ee7b7';
-                }
-            }
             if (wheelBtn) {
                 wheelBtn.classList.toggle('reel-danger', pct >= 82);
             }
