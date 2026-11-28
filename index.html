@@ -658,6 +658,88 @@
             border-color: #818cf8;
             font-size: 20px;
         }
+
+        /* ==================== УЛУЧШЕННЫЙ ИНТЕРФЕЙС РЫБАЛКИ (v2.4) ==================== */
+        @keyframes reelWheelSpin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        @keyframes bitePulseBtn {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.7); }
+            50% { transform: scale(1.04); box-shadow: 0 0 28px 8px rgba(251, 191, 36, 0.45); }
+        }
+        @keyframes dangerPulseRing {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.8), inset 0 0 18px rgba(239, 68, 68, 0.45); }
+            50% { box-shadow: 0 0 26px 6px rgba(239, 68, 68, 0.6), inset 0 0 26px rgba(239, 68, 68, 0.7); }
+        }
+        .bite-pulse-btn {
+            animation: bitePulseBtn 0.75s ease-in-out infinite;
+        }
+        .reel-wheel-btn {
+            position: relative;
+            width: 124px;
+            height: 124px;
+            border-radius: 50%;
+            border: 4px solid #34d399;
+            background: radial-gradient(circle at 35% 30%, #10b981 0%, #047857 58%, #064e3b 100%);
+            color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            touch-action: none;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+            box-shadow: 0 10px 26px rgba(16, 185, 129, 0.42), inset 0 3px 10px rgba(255, 255, 255, 0.25);
+            transition: transform 0.1s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+            margin: 0 auto;
+        }
+        .reel-wheel-btn:active,
+        .reel-wheel-btn.reeling-active {
+            transform: scale(0.94);
+            border-color: #6ee7b7;
+            box-shadow: 0 0 28px rgba(52, 211, 153, 0.75), inset 0 0 22px rgba(255, 255, 255, 0.3);
+        }
+        .reel-wheel-btn.reel-danger {
+            border-color: #ef4444 !important;
+            background: radial-gradient(circle at 35% 30%, #ef4444 0%, #b91c1c 62%, #7f1d1d 100%) !important;
+            animation: dangerPulseRing 0.55s ease-in-out infinite;
+        }
+        .reel-wheel-ring {
+            position: absolute;
+            inset: 6px;
+            border-radius: 50%;
+            border: 3px dashed rgba(255, 255, 255, 0.45);
+            pointer-events: none;
+        }
+        .reel-wheel-btn.reeling-active .reel-wheel-ring {
+            border-color: rgba(253, 224, 71, 0.9);
+            animation: reelWheelSpin 0.65s linear infinite;
+        }
+        .fight-status-pill {
+            font-size: 13.5px;
+            font-weight: 900;
+            text-align: center;
+            padding: 8px 10px;
+            border-radius: 12px;
+            margin-bottom: 8px;
+            border: 1.5px solid rgba(52, 211, 153, 0.45);
+            background: rgba(16, 185, 129, 0.16);
+            color: #6ee7b7;
+            letter-spacing: 0.01em;
+        }
+        .pond-section-label {
+            font-size: 12.5px;
+            font-weight: 800;
+            color: #cbd5e1;
+            margin-bottom: 5px;
+        }
+        #tab-pond .chip {
+            padding: 8px 12px;
+            font-size: 13px;
+        }
     </style>
 </head>
 <body>
@@ -1033,19 +1115,24 @@
                     return;
                 }
                 if (statusEl) statusEl.textContent = '🔄 Синхронизация ваших аккаунтов...';
-                fetchWithTimeout(CLOUD_URL + '/accounts.json', {}, 2500)
-                    .then(function(r) { return r.ok ? r.json() : null; })
-                    .then(function(remoteMap) {
-                        if (remoteMap && typeof remoteMap === 'object') {
-                            var filteredRemote = {};
-                            for (var i = 0; i < localKeys.length; i++) {
-                                var lk = localKeys[i].toLowerCase();
-                                var cKey = cloudAccKey(lk);
-                                var cand = remoteMap[cKey] || remoteMap[lk];
-                                if (cand && (!cand.wipeEpoch || cand.wipeEpoch === GLOBAL_WIPE_VERSION)) {
-                                    filteredRemote[lk] = cand;
-                                }
+                var requests = localKeys.map(function(rawKey) {
+                    var lk = rawKey.toLowerCase();
+                    var cKey = cloudAccKey(lk);
+                    return fetchWithTimeout(CLOUD_URL + '/accounts/' + cKey + '.json', {}, 2500)
+                        .then(function(r) { return r.ok ? r.json() : null; })
+                        .then(function(cand) { return { lk: lk, cand: cand }; })
+                        .catch(function() { return { lk: lk, cand: null }; });
+                });
+                Promise.all(requests)
+                    .then(function(results) {
+                        var filteredRemote = {};
+                        for (var i = 0; i < results.length; i++) {
+                            var cand = results[i].cand;
+                            if (cand && cand.login && (!cand.wipeEpoch || cand.wipeEpoch === GLOBAL_WIPE_VERSION)) {
+                                filteredRemote[results[i].lk] = cand;
                             }
+                        }
+                        if (Object.keys(filteredRemote).length > 0) {
                             window.__mergeAccounts(db.accounts, filteredRemote);
                             window.__saveAllStorages();
                         }
@@ -1402,183 +1489,216 @@
                     </div>
                 </div>
 
-                <!-- ПАНЕЛЬ ВЫВАЖИВАНИЯ -->
-                <div id="fight-panel" class="card hidden" style="border-color: #f59e0b; background: rgba(15, 23, 42, 0.96); padding: 8px 10px;">
-                    <div id="bite-action-box" class="hidden" style="text-align: center;">
-                        <div style="font-size: 15px; font-weight: 900; color: #fbbf24; margin-bottom: 8px;">
-                            ❗ ПОКЛЁВКА! ПОПЛАВОК ПОВЕЛО В СТОРОНУ!
+                <!-- ПАНЕЛЬ ВЫВАЖИВАНИЯ (КРУПНАЯ И ПОНЯТНАЯ) -->
+                <div id="fight-panel" class="card hidden" style="border: 2px solid #f59e0b; background: rgba(15, 23, 42, 0.97); padding: 12px;">
+                    <div id="bite-action-box" class="hidden" style="text-align: center; padding: 6px 0;">
+                        <div style="font-size: 17px; font-weight: 900; color: #fde047; margin-bottom: 10px;">
+                            ❗ КЛЮЁТ! ПОДСЕКАЙ!
                         </div>
-                        <button type="button" onclick="hookFish()" class="btn btn-gold btn-lg" style="font-size: 16px; padding: 15px;">
+                        <button type="button" onclick="hookFish()" class="btn btn-gold btn-lg bite-pulse-btn" style="font-size: 18px; padding: 18px; border-radius: 16px;">
                             🎣 ПОДСЕЧЬ РЫБУ!
                         </button>
                     </div>
 
                     <div id="snag-action-box" class="hidden" style="text-align: center;">
-                        <div style="font-size: 16px; font-weight: 900; color: #f87171; margin-bottom: 4px;">
+                        <div style="font-size: 17px; font-weight: 900; color: #f87171; margin-bottom: 5px;">
                             🪵 ГЛУХОЙ ЗАЦЕП НА ДНЕ!
                         </div>
-                        <div id="snag-desc-text" style="font-size: 11.5px; color: #cbd5e1; margin-bottom: 10px;">
+                        <div id="snag-desc-text" style="font-size: 13px; color: #cbd5e1; margin-bottom: 10px;">
                             Снасть намертво застряла в корягах! Попробуйте отцепить или выдернуть.
                         </div>
-                        <div style="display: flex; flex-direction: column; gap: 7px;">
-                            <button id="btn-use-otcep" type="button" onclick="resolveSnag('otcep')" class="btn btn-gold btn-lg" style="padding: 12px; font-size: 13px;">
+                        <div style="display: flex; flex-direction: column; gap: 8px;">
+                            <button id="btn-use-otcep" type="button" onclick="resolveSnag('otcep')" class="btn btn-gold btn-lg" style="padding: 13px; font-size: 13.5px;">
                                 🧲 Использовать Отцеп (80% спасти / 20% −леска)
                             </button>
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 7px;">
-                                <button type="button" onclick="resolveSnag('yank')" class="btn btn-blue btn-sm" style="padding: 11px 6px;">
-                                    💪 Дёрнуть (30% / 70% −леска)
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                                <button type="button" onclick="resolveSnag('yank')" class="btn btn-blue btn-sm" style="padding: 12px 6px; font-size: 13px;">
+                                    💪 Дёрнуть (30%)
                                 </button>
-                                <button type="button" onclick="resolveSnag('cut')" class="btn btn-danger btn-sm" style="padding: 11px 6px;">
-                                    ✂️ Обрезать (−леска)
+                                <button type="button" onclick="resolveSnag('cut')" class="btn btn-danger btn-sm" style="padding: 12px 6px; font-size: 13px;">
+                                    ✂️ Обрезать
                                 </button>
                             </div>
                         </div>
                     </div>
 
                     <div id="reeling-action-box" class="hidden">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3px; gap: 6px;">
-                            <span id="fight-fish-hint" style="font-size: 11px; font-weight: 800; color: #38bdf8;">🐟 Сопротивление рыбы</span>
-                            <span id="fight-distance-text" style="font-size: 11.5px; font-weight: 900; color: #34d399; white-space: nowrap;">До берега: 18.0 м</span>
+                        <!-- Понятный статус: что происходит и что делать -->
+                        <div id="fight-status-pill" class="fight-status-pill">
+                            🟢 МОЖНО МОТАТЬ — зажми катушку!
                         </div>
-                        <div id="fight-trait-banner" style="font-size: 10.5px; font-weight: 800; color: #fde68a; background: rgba(30, 41, 59, 0.85); border: 1px solid rgba(251, 191, 36, 0.28); border-radius: 8px; padding: 3px 7px; margin-bottom: 5px; display: flex; justify-content: space-between; align-items: center;">
-                            <span id="fight-trait-text">🎣 Вываживание</span>
-                            <span id="fight-surge-text" style="color: #94a3b8;">Ровный ход</span>
-                        </div>
+                        <span id="fight-fish-hint" class="hidden"></span>
+                        <span id="fight-trait-text" class="hidden"></span>
+                        <span id="fight-surge-text" class="hidden"></span>
 
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 6px;">
-                            <div>
-                                <div style="margin-bottom: 2px; display:flex; justify-content:space-between; font-size: 10px; font-weight: 700;">
-                                    <span>Натяжение</span>
-                                    <span id="fight-tension-pct">35%</span>
-                                </div>
-                                <div class="tension-bar-wrap" style="height: 10px;">
-                                    <div id="fight-tension-fill" class="tension-bar-fill" style="width: 35%; background: #10b981;"></div>
-                                </div>
+                        <!-- Главные цифры: Дистанция и Силы рыбы -->
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px;">
+                            <div style="background: rgba(30, 41, 59, 0.85); border-radius: 12px; padding: 8px 10px; border: 1px solid rgba(52, 211, 153, 0.3);">
+                                <div style="font-size: 11px; color: #94a3b8; font-weight: 700;">ДО БЕРЕГА</div>
+                                <div id="fight-distance-text" style="font-size: 20px; font-weight: 900; color: #34d399; line-height: 1.2;">18.0 м</div>
+                                <div id="fight-spool-text" style="font-size: 11px; color: #cbd5e1; margin-top: 2px;">Леска: 18 / 60 м</div>
                             </div>
-                            <div>
-                                <div style="margin-bottom: 2px; display:flex; justify-content:space-between; font-size: 10px; font-weight: 700;">
-                                    <span style="color:#fde68a;">⚡ Силы рыбы</span>
-                                    <span id="fight-stamina-pct" style="color:#fbbf24;">100%</span>
+                            <div style="background: rgba(30, 41, 59, 0.85); border-radius: 12px; padding: 8px 10px; border: 1px solid rgba(251, 191, 36, 0.3);">
+                                <div style="display:flex; justify-content:space-between; align-items:baseline;">
+                                    <span style="font-size: 11px; color: #94a3b8; font-weight: 700;">СИЛЫ РЫБЫ</span>
+                                    <span id="fight-stamina-pct" style="font-size: 15px; font-weight: 900; color: #fbbf24;">100%</span>
                                 </div>
-                                <div class="tension-bar-wrap" style="height: 10px;">
+                                <div class="tension-bar-wrap" style="height: 12px; margin-top: 7px;">
                                     <div id="fight-stamina-fill" class="tension-bar-fill" style="width: 100%; background: linear-gradient(90deg, #38bdf8, #f59e0b);"></div>
                                 </div>
                             </div>
                         </div>
 
-                        <div style="background: rgba(30, 41, 59, 0.88); border: 1px solid rgba(56, 189, 248, 0.35); border-radius: 10px; padding: 5px 8px; margin-bottom: 6px;">
-                            <div style="display:flex; justify-content:space-between; align-items:center; font-size: 10.5px; font-weight: 800; margin-bottom: 3px;">
-                                <span id="fight-drag-label" style="color: #38bdf8;">⚙️ Фрикцион: 20 / 30</span>
-                                <span id="fight-spool-text" style="color: #cbd5e1;">Леска: 18 / 60 м</span>
+                        <!-- Большая шкала натяжения -->
+                        <div style="margin-bottom: 12px;">
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 4px;">
+                                <span style="font-size: 13px; font-weight: 800; color: #f8fafc;">⚠️ НАТЯЖЕНИЕ ЛЕСКИ</span>
+                                <span id="fight-tension-pct" style="font-size: 16px; font-weight: 900; color: #34d399;">35%</span>
                             </div>
-                            <div style="display:flex; align-items:center; gap: 5px; margin-bottom: 4px;">
-                                <button type="button" onclick="adjustFrictionDrag(-1)" class="btn btn-secondary btn-sm" style="padding: 3px 9px; font-size: 12px;">−</button>
-                                <input id="fight-drag-slider" type="range" min="1" max="30" value="20" oninput="setFrictionDrag(this.value)" style="flex:1; accent-color:#38bdf8; cursor:pointer; height: 18px;">
-                                <button type="button" onclick="adjustFrictionDrag(1)" class="btn btn-secondary btn-sm" style="padding: 3px 9px; font-size: 12px;">+</button>
-                            </div>
-                            <div style="display:grid; grid-template-columns: repeat(5, 1fr); gap: 3px;">
-                                <button type="button" onclick="setFrictionDrag(15)" class="btn btn-secondary btn-sm" style="padding: 3px 2px; font-size: 10px;">15</button>
-                                <button type="button" onclick="setFrictionDrag(20)" class="btn btn-secondary btn-sm" style="padding: 3px 2px; font-size: 10px;">20</button>
-                                <button type="button" onclick="setFrictionDrag(25)" class="btn btn-secondary btn-sm" style="padding: 3px 2px; font-size: 10px;">25</button>
-                                <button type="button" onclick="setFrictionDrag(29)" class="btn btn-gold btn-sm" style="padding: 3px 2px; font-size: 10px;">29</button>
-                                <button type="button" onclick="setFrictionDrag(30)" class="btn btn-danger btn-sm" style="padding: 3px 2px; font-size: 10px;">30 КЛИН</button>
+                            <div class="tension-bar-wrap" style="height: 16px;">
+                                <div id="fight-tension-fill" class="tension-bar-fill" style="width: 35%; background: #10b981;"></div>
                             </div>
                         </div>
 
-                        <div style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 6px;">
-                            <button type="button" onclick="reelInStep()" class="btn btn-primary" style="padding: 11px 8px; font-size: 13.5px;">
-                                🎣 Подмотать
-                            </button>
-                            <button id="btn-friction-drag" type="button" onclick="quickDropDrag()" class="btn btn-blue" style="padding: 11px 6px; font-size: 12px;">
-                                🔽 Стравить (−5)
+                        <!-- Центральный блок: Большая круглая катушка (зажми и мотай) + Фрикцион -->
+                        <div style="display: grid; grid-template-columns: 134px 1fr; gap: 12px; align-items: center; margin-bottom: 8px;">
+                            <div style="text-align: center;">
+                                <button id="btn-reel-wheel" type="button"
+                                    class="reel-wheel-btn"
+                                    onpointerdown="startHoldReel(event)"
+                                    onpointerup="stopHoldReel()"
+                                    onpointerleave="stopHoldReel()"
+                                    onpointercancel="stopHoldReel()"
+                                    oncontextmenu="return false;">
+                                    <div class="reel-wheel-ring"></div>
+                                    <span style="font-size: 30px; line-height: 1; margin-bottom: 2px;">⚙️</span>
+                                    <span style="font-size: 13px; font-weight: 900; letter-spacing: 0.03em;">МОТАТЬ</span>
+                                    <span style="font-size: 10px; opacity: 0.88; font-weight: 700;">ЗАЖМИ</span>
+                                </button>
+                            </div>
+
+                            <div style="display: flex; flex-direction: column; gap: 8px;">
+                                <div style="background: rgba(30, 41, 59, 0.9); border: 1px solid rgba(56, 189, 248, 0.35); border-radius: 12px; padding: 8px;">
+                                    <div id="fight-drag-label" style="font-size: 12.5px; font-weight: 900; color: #38bdf8; text-align: center; margin-bottom: 6px;">
+                                        ⚙️ Фрикцион: 20 / 30
+                                    </div>
+                                    <div style="display:flex; align-items:center; gap: 6px; margin-bottom: 6px;">
+                                        <button type="button" onclick="adjustFrictionDrag(-1)" class="btn btn-secondary" style="padding: 6px 12px; font-size: 16px; border-radius: 9px;">−</button>
+                                        <input id="fight-drag-slider" type="range" min="1" max="30" value="20" oninput="setFrictionDrag(this.value)" style="flex:1; accent-color:#38bdf8; cursor:pointer; height: 22px;">
+                                        <button type="button" onclick="adjustFrictionDrag(1)" class="btn btn-secondary" style="padding: 6px 12px; font-size: 16px; border-radius: 9px;">+</button>
+                                    </div>
+                                    <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap: 4px;">
+                                        <button type="button" onclick="setFrictionDrag(15)" class="btn btn-secondary btn-sm" style="padding: 5px 2px; font-size: 11.5px;">15</button>
+                                        <button type="button" onclick="setFrictionDrag(22)" class="btn btn-secondary btn-sm" style="padding: 5px 2px; font-size: 11.5px;">22</button>
+                                        <button type="button" onclick="setFrictionDrag(29)" class="btn btn-gold btn-sm" style="padding: 5px 2px; font-size: 11.5px;">29</button>
+                                        <button type="button" onclick="setFrictionDrag(30)" class="btn btn-danger btn-sm" style="padding: 5px 2px; font-size: 11px;">КЛИН</button>
+                                    </div>
+                                </div>
+
+                                <button id="btn-friction-drag" type="button" onclick="quickDropDrag()" class="btn btn-blue" style="padding: 10px 8px; font-size: 13px; width: 100%;">
+                                    🔽 Ослабить (−5)
+                                </button>
+                            </div>
+                        </div>
+
+                        <div style="text-align: center;">
+                            <button type="button" onclick="castLine()" style="background:none; border:none; color:#94a3b8; font-size:11.5px; font-weight:700; cursor:pointer; text-decoration:underline; padding: 2px 8px;">
+                                ✂️ Обрезать леску / сдаться
                             </button>
                         </div>
                     </div>
                 </div>
 
                 <!-- КОМПАКТНАЯ МИНИ-СТРОКА ОСНАСТКИ -->
-                <div id="compact-rig-strip" class="hidden" style="background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(148, 163, 184, 0.2); border-radius: 11px; padding: 6px 10px; font-size: 11px; color: #cbd5e1; display: flex; justify-content: space-between; align-items: center;">
+                <div id="compact-rig-strip" class="hidden" style="background: rgba(15, 23, 42, 0.88); border: 1px solid rgba(148, 163, 184, 0.25); border-radius: 12px; padding: 8px 12px; font-size: 12.5px; color: #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
                     <span id="compact-rig-text">Снасть: до 3 кг • Черви</span>
-                    <button type="button" onclick="toggleManualFocus()" style="background:none; border:none; color:#38bdf8; font-weight:700; font-size:11px; cursor:pointer;">Развернуть</button>
+                    <button type="button" onclick="toggleManualFocus()" style="background:none; border:none; color:#38bdf8; font-weight:800; font-size:12.5px; cursor:pointer;">Развернуть</button>
                 </div>
 
                 <!-- БАННЕР ШТРАФНОГО ВОДОЁМА -->
                 <div id="penalty-status-banner" class="card hidden" style="border: 1.5px solid #ef4444; background: rgba(127, 29, 29, 0.45); padding: 10px;">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 4px;">
-                        <span style="font-size: 13px; font-weight: 900; color: #fca5a5;">🚨 ШТРАФНОЙ ВОДОЁМ (РЫБНАДЗОР)</span>
-                        <span id="penalty-progress-text" style="font-size: 12px; font-weight: 900; color: #fde047;">0.00 / 7.5 кг</span>
+                        <span style="font-size: 13.5px; font-weight: 900; color: #fca5a5;">🚨 ШТРАФНОЙ ВОДОЁМ (РЫБНАДЗОР)</span>
+                        <span id="penalty-progress-text" style="font-size: 13px; font-weight: 900; color: #fde047;">0.00 / 7.5 кг</span>
                     </div>
-                    <div style="font-size: 11px; color: #fecaca; margin-bottom: 6px;">Вы ловили без лицензии! Отработайте штраф мелкой рыбой, чтобы вернуться на обычные водоёмы.</div>
-                    <div style="height: 8px; background: rgba(15,23,42,0.85); border-radius: 99px; overflow: hidden;">
+                    <div style="font-size: 12px; color: #fecaca; margin-bottom: 6px;">Вы ловили без лицензии! Отработайте штраф мелкой рыбой, чтобы вернуться на обычные водоёмы.</div>
+                    <div style="height: 9px; background: rgba(15,23,42,0.85); border-radius: 99px; overflow: hidden;">
                         <div id="penalty-progress-fill" style="height: 100%; width: 0%; background: linear-gradient(90deg, #f59e0b, #10b981);"></div>
                     </div>
                 </div>
 
-                <!-- БЛОК ПОДГОТОВКИ К ЗАБРОСУ -->
-                <div id="prep-panels-container" style="display: flex; flex-direction: column; gap: 8px;">
-                    <div>
-                        <div style="font-size: 11px; font-weight: 700; color: #94a3b8; margin-bottom: 4px;">📍 ТОЧКА ЗАБРОСА</div>
-                        <div id="spot-chips-row" class="chip-scroll"></div>
+                <!-- БЛОК ПОДГОТОВКИ К ЗАБРОСУ (УПРОЩЁННЫЙ И ЧИТАЕМЫЙ) -->
+                <div id="prep-panels-container" style="display: flex; flex-direction: column; gap: 9px;">
+                    <div class="card" style="padding: 11px 12px; display: flex; flex-direction: column; gap: 10px;">
+                        <div>
+                            <div class="pond-section-label">📍 Точка заброса</div>
+                            <div id="spot-chips-row" class="chip-scroll"></div>
+                        </div>
+
+                        <div>
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 5px;">
+                                <span class="pond-section-label" style="margin:0; color:#38bdf8;">📏 Глубина заброса</span>
+                                <span id="depth-value-label" style="font-size: 13px; font-weight: 900; color: #fde047;">1.0 м (У дна)</span>
+                            </div>
+                            <input id="depth-slider" type="range" min="0.5" max="3.8" step="0.1" value="1.0" oninput="setCastDepth(this.value)" style="width:100%; accent-color:#38bdf8; cursor:pointer; height: 22px; margin-bottom: 5px;">
+                            <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px;">
+                                <button type="button" onclick="setDepthPreset(0.2)" class="btn btn-secondary btn-sm" style="padding: 6px; font-size: 12px;">🌊 Верх</button>
+                                <button type="button" onclick="setDepthPreset(0.55)" class="btn btn-secondary btn-sm" style="padding: 6px; font-size: 12px;">🐟 Полводы</button>
+                                <button type="button" onclick="setDepthPreset(0.95)" class="btn btn-secondary btn-sm" style="padding: 6px; font-size: 12px;">⚓ У дна</button>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="pond-section-label">🪱 Наживка</div>
+                            <div id="bait-chips-row" class="chip-scroll"></div>
+                        </div>
+
+                        <div>
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 5px;">
+                                <span class="pond-section-label" style="margin:0;">🌾 Прикормка</span>
+                                <span id="spot-chum-status" style="font-size: 12px; color: #fbbf24; font-weight: 700;">Не прикормлено</span>
+                            </div>
+                            <div id="chum-chips-row" class="chip-scroll"></div>
+                        </div>
                     </div>
 
-                    <div class="card" style="padding: 8px 10px;">
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 5px;">
-                            <span style="font-size: 11px; font-weight: 800; color: #38bdf8;">📏 Глубина заброса</span>
-                            <span id="depth-value-label" style="font-size: 11px; font-weight: 900; color: #fde047;">1.0 м (У дна)</span>
-                        </div>
-                        <div style="display:flex; align-items:center; gap: 8px; margin-bottom: 5px;">
-                            <input id="depth-slider" type="range" min="0.5" max="3.8" step="0.1" value="1.0" oninput="setCastDepth(this.value)" style="flex:1; accent-color:#38bdf8; cursor:pointer;">
-                        </div>
-                        <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px;">
-                            <button type="button" onclick="setDepthPreset(0.2)" class="btn btn-secondary btn-sm" style="padding: 4px; font-size: 10px;">🌊 Верх</button>
-                            <button type="button" onclick="setDepthPreset(0.55)" class="btn btn-secondary btn-sm" style="padding: 4px; font-size: 10px;">🐟 Полводы</button>
-                            <button type="button" onclick="setDepthPreset(0.95)" class="btn btn-secondary btn-sm" style="padding: 4px; font-size: 10px;">⚓ У дна</button>
-                        </div>
-                    </div>
+                    <!-- Предупреждение о лимите / лицензии / правилах -->
+                    <div id="loc-rules-banner" class="card" style="padding: 9px 11px; border-color: rgba(56, 189, 248, 0.35); background: rgba(15, 23, 42, 0.92);"></div>
 
-                    <div class="card" style="padding: 8px 10px;">
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 4px;">
-                            <span style="font-size: 11px; font-weight: 800; color: #34d399;">🔥 Сейчас на клёве</span>
-                            <span id="active-fish-count" style="font-size: 10px; color: #94a3b8;">0 видов</span>
+                    <!-- Второстепенная информация убрана в аккуратный раскрывающийся блок -->
+                    <details id="pond-extra-details" class="card" style="padding: 10px 12px;">
+                        <summary style="font-size: 13px; font-weight: 800; color: #94a3b8; cursor: pointer; display:flex; justify-content:space-between; align-items:center;">
+                            <span>📋 Кто клюёт сейчас и моя снасть</span>
+                            <span id="rig-max-kg-badge" style="font-size: 12.5px; font-weight: 900; color: #fbbf24;">до 3.0 кг</span>
+                        </summary>
+                        <div style="margin-top: 10px; display: flex; flex-direction: column; gap: 10px;">
+                            <div>
+                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 5px;">
+                                    <span style="font-size: 12.5px; font-weight: 800; color: #34d399;">🔥 Сейчас на клёве</span>
+                                    <span id="active-fish-count" style="font-size: 12px; color: #94a3b8;">0 видов</span>
+                                </div>
+                                <div id="active-fish-chips" class="chip-scroll"></div>
+                            </div>
+                            <div>
+                                <div style="font-size: 12.5px; font-weight: 800; color: #e2e8f0; margin-bottom: 5px;">🎣 Собранная снасть</div>
+                                <div id="rig-summary-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 12px; color: #cbd5e1;"></div>
+                            </div>
                         </div>
-                        <div id="active-fish-chips" class="chip-scroll"></div>
-                    </div>
-
-                    <!-- Информация об ограничении снастей и бонусе Дома рыбака на локации -->
-                    <div id="loc-rules-banner" class="card" style="padding: 8px 10px; border-color: rgba(56, 189, 248, 0.35); background: rgba(15, 23, 42, 0.92);"></div>
-
-                    <div class="card" style="padding: 9px 10px;">
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 5px;">
-                            <span style="font-size: 11px; font-weight: 800; color: #e2e8f0;">🎣 Собранная снасть</span>
-                            <span id="rig-max-kg-badge" style="font-size: 11px; font-weight: 900; color: #fbbf24;">Прочность: до 3.0 кг</span>
-                        </div>
-                        <div id="rig-summary-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px; font-size: 11px; color: #cbd5e1;"></div>
-                    </div>
-
-                    <div class="card" style="padding: 9px 10px;">
-                        <div style="font-size: 11px; font-weight: 800; color: #94a3b8; margin-bottom: 4px;">🪱 НАЖИВКА</div>
-                        <div id="bait-chips-row" class="chip-scroll" style="margin-bottom: 8px;"></div>
-
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 4px;">
-                            <span style="font-size: 11px; font-weight: 800; color: #94a3b8;">🌾 ПРИКОРМКА НА ТОЧКУ</span>
-                            <span id="spot-chum-status" style="font-size: 10px; color: #fbbf24; font-weight: 700;">Не прикормлено</span>
-                        </div>
-                        <div id="chum-chips-row" class="chip-scroll"></div>
-                    </div>
+                    </details>
 
                     <div id="fisher-condition-banner" class="condition-box"></div>
                 </div>
 
                 <div id="cast-action-wrap">
-                    <button id="btn-cast-main" type="button" onclick="castLine()" class="btn btn-primary btn-lg">
+                    <button id="btn-cast-main" type="button" onclick="castLine()" class="btn btn-primary btn-lg" style="font-size: 16px; padding: 15px;">
                         🎣 ЗАБРОСИТЬ СНАСТЬ
                     </button>
                 </div>
 
-                <div class="card" style="padding: 9px 10px;">
-                    <div style="font-size: 11px; font-weight: 800; color: #94a3b8; margin-bottom: 5px;">📜 ЖУРНАЛ РЫБАЛКИ</div>
-                    <div id="journal-list" class="journal-box"></div>
-                </div>
+                <details id="pond-journal-card" class="card" style="padding: 9px 11px;">
+                    <summary style="font-size: 12.5px; font-weight: 800; color: #94a3b8; cursor: pointer;">📜 Журнал рыбалки (последние события)</summary>
+                    <div id="journal-list" class="journal-box" style="margin-top: 7px;"></div>
+                </details>
             </section>
 
             <!-- ==================== ВКЛАДКА 2: САДОК ==================== -->
@@ -3834,7 +3954,7 @@
         function fetchCloudChat(manualClick) {
             if (typeof fetch !== 'function') return;
 
-            fetch(FIREBASE_DB_URL + '/chat_global.json')
+            fetch(FIREBASE_DB_URL + '/chat_global.json?orderBy=%22$key%22&limitToLast=40')
                 .then(function(res) { return res.ok ? res.json() : null; })
                 .then(function(data) {
                     if (data && typeof data === 'object') {
@@ -3856,7 +3976,7 @@
                 .catch(function() {});
 
             if (state && state.activeLobbyId) {
-                fetch(FIREBASE_DB_URL + '/lobby_chats/' + state.activeLobbyId + '.json')
+                fetch(FIREBASE_DB_URL + '/lobby_chats/' + state.activeLobbyId + '.json?orderBy=%22$key%22&limitToLast=40')
                     .then(function(res) { return res.ok ? res.json() : null; })
                     .then(function(data) {
                         if (data && typeof data === 'object') {
@@ -4140,7 +4260,9 @@
             if (typeof window.__saveAllStorages === 'function') {
                 window.__saveAllStorages();
             }
-            if (typeof window.__pushAccountToFirebase === 'function') {
+            var nowPushAcc = Date.now();
+            if (typeof window.__pushAccountToFirebase === 'function' && (nowPushAcc - (window.__lastAccCloudPushAt || 0) >= 20000)) {
+                window.__lastAccCloudPushAt = nowPushAcc;
                 window.__pushAccountToFirebase(currentAccount);
             }
             syncPlayerToCloud(false);
@@ -4264,13 +4386,14 @@
                     if (currentTab === 'lobby') renderLobbyTab();
                     if (currentTab === 'event') renderEventTab();
                 }
-                if (state.stats.playSeconds % 8 === 0) {
+                if (state.stats.playSeconds % 20 === 0) {
                     checkIncomingAdminAdjustments();
                 }
-                if (state.stats.playSeconds % 12 === 0) {
+                if ((currentTab === 'chat' && state.stats.playSeconds % 15 === 0) ||
+                    (currentTab !== 'chat' && state.stats.playSeconds % 45 === 0)) {
                     fetchCloudChat(false);
                 }
-                if (state.stats.playSeconds % 20 === 0) {
+                if (state.stats.playSeconds % 40 === 0) {
                     syncPlayerToCloud(true);
                     if (currentTab === 'lobby') fetchCloudLobbies(false);
                 }
@@ -4279,6 +4402,7 @@
 
         function logoutCurrentAccount() {
             resetFishingState(true);
+            window.__lastAccCloudPushAt = 0;
             persistState();
             clearInterval(playTimeInterval);
             currentAccount = null;
@@ -4607,7 +4731,7 @@
             renderAll();
         }
 
-        // Проверка совместимости каждого компонента снасти с лимитом выбранного водоёма
+        // Проверка совместимости удочки и катушки с лимитом выбранного водоёма (леска и крючок не ограничиваются)
         function checkRigAllowedOnLocation(locId, rig) {
             var locObj = LOCATIONS[locId];
             if (!locObj) return { ok: true };
@@ -4617,8 +4741,6 @@
             var overParts = [];
             if (rig.rod.maxKg > cap) overParts.push('удочка (' + rig.rod.maxKg + ' кг)');
             if (rig.reel.maxKg > cap) overParts.push('катушка (' + rig.reel.maxKg + ' кг)');
-            if (rig.line.maxKg > cap) overParts.push('леска (' + rig.line.maxKg + ' кг)');
-            if (rig.hook.maxKg > cap) overParts.push('крючок (' + rig.hook.maxKg + ' кг)');
 
             if (overParts.length > 0) {
                 return {
@@ -4828,13 +4950,18 @@
             var btn = document.getElementById('btn-toggle-focus');
             var waterPill = document.getElementById('water-status-pill');
 
+            var castWrap = document.getElementById('cast-action-wrap');
+            var journalCard = document.getElementById('pond-journal-card');
+            if (castWrap) castWrap.classList.toggle('hidden', fishingPhase === 'reeling' || fishingPhase === 'biting');
+            if (journalCard) journalCard.classList.toggle('hidden', isActiveFight);
+
             if (isActiveFight) {
                 stage.classList.remove('focus-mode');
                 stage.classList.add('fight-mode');
                 prep.classList.add('hidden');
                 locWrap.classList.add('hidden');
                 compact.classList.add('hidden');
-                if (waterPill) waterPill.classList.toggle('hidden', fishingPhase === 'reeling');
+                if (waterPill) waterPill.classList.toggle('hidden', fishingPhase === 'reeling' || fishingPhase === 'biting');
                 btn.textContent = '🎒 Снасти';
             } else if (isFocused) {
                 stage.classList.remove('fight-mode');
@@ -5097,7 +5224,7 @@
             }
             var check = checkRigAllowedOnLocation(state.location, rig);
             if (!check.ok) {
-                showToast('⚠️ На этом водоёме лимит снастей до ' + check.cap + ' кг! Слишком мощные: ' + check.overParts.join(', ') + '.', '#ef4444');
+                showToast('⚠️ На этом водоёме лимит удочки/катушки до ' + check.cap + ' кг! Слишком мощные: ' + check.overParts.join(', ') + '.', '#ef4444');
                 return;
             }
 
@@ -5628,6 +5755,34 @@
             }, 260);
         }
 
+        var holdReelTimer = null;
+
+        function startHoldReel(e) {
+            if (e && typeof e.preventDefault === 'function') e.preventDefault();
+            if (fishingPhase !== 'reeling') return;
+            var btn = document.getElementById('btn-reel-wheel');
+            if (btn) btn.classList.add('reeling-active');
+            reelInStep();
+            clearInterval(holdReelTimer);
+            holdReelTimer = setInterval(function() {
+                if (fishingPhase !== 'reeling') {
+                    stopHoldReel();
+                    return;
+                }
+                reelInStep();
+            }, 190);
+        }
+
+        function stopHoldReel() {
+            clearInterval(holdReelTimer);
+            holdReelTimer = null;
+            var btn = document.getElementById('btn-reel-wheel');
+            if (btn) btn.classList.remove('reeling-active');
+        }
+
+        window.addEventListener('pointerup', stopHoldReel);
+        window.addEventListener('pointercancel', stopHoldReel);
+
         function reelInStep() {
             if (fishingPhase !== 'reeling' || !activeFish || !activeFightProfile) return;
             var rig = getRigSummary();
@@ -5863,6 +6018,7 @@
             clearTimeout(biteTimer);
             clearTimeout(biteEscapeTimer);
             clearInterval(fightLoopTimer);
+            if (typeof stopHoldReel === 'function') stopHoldReel();
             fishingPhase = 'idle';
             activeFish = null;
             if (!silent) {
@@ -6538,6 +6694,7 @@
         }
 
         function forceCloudSaveNow() {
+            window.__lastAccCloudPushAt = 0;
             persistState();
             syncPlayerToCloud(true);
             showToast('☁️ Прогресс сохранён в облако!', '#38bdf8');
@@ -6816,6 +6973,50 @@
                 }
             }
 
+            var LOC_PHOTOS = {
+                pond: 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=800&q=75',
+                river: 'https://images.unsplash.com/photo-1432405972618-c60b0225b8f9?auto=format&fit=crop&w=800&q=75',
+                lake: 'https://images.unsplash.com/photo-1439066615861-d1af74d74000?auto=format&fit=crop&w=800&q=75',
+                fjord: 'https://images.unsplash.com/photo-1513519245088-0e12902e5a38?auto=format&fit=crop&w=800&q=75',
+                sea: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=75',
+                amazon: 'https://images.unsplash.com/photo-1516026672322-bc52d61a55d5?auto=format&fit=crop&w=800&q=75',
+                abyss: 'https://images.unsplash.com/photo-1518837695005-2083093ee35b?auto=format&fit=crop&w=800&q=75',
+                event_lagoon: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=75',
+                penalty_pond: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=800&q=75'
+            };
+            var photoUrl = LOC_PHOTOS[loc] || LOC_PHOTOS.pond;
+            var timeTintColor = period === 'night' ? '#020617' : (period === 'evening' ? '#be123c' : (period === 'morning' ? '#ea580c' : '#0284c7'));
+            var timeTintOp = period === 'night' ? '0.68' : (period === 'evening' ? '0.32' : (period === 'morning' ? '0.24' : '0.12'));
+
+            // 3D-блик солнца/луны на воде
+            var glareColor = period === 'night' ? '#fef08a' : (period === 'evening' ? '#fb7185' : '#fde68a');
+            var waterGlare =
+                '<g opacity="' + (period === 'night' ? '0.32' : '0.26') + '">' +
+                    '<ellipse cx="325" cy="144" rx="34" ry="3" fill="' + glareColor + '"/>' +
+                    '<ellipse cx="322" cy="154" rx="46" ry="3.5" fill="' + glareColor + '"/>' +
+                    '<ellipse cx="328" cy="167" rx="30" ry="3" fill="' + glareColor + '"/>' +
+                    '<ellipse cx="320" cy="182" rx="22" ry="2.5" fill="' + glareColor + '"/>' +
+                '</g>';
+
+            // 3D-перспектива волн (ближе к игроку — шире и контрастнее)
+            var waterWaves3d =
+                '<path d="M0,142 Q100,139 200,142 T400,142" fill="none" stroke="rgba(255,255,255,0.22)" stroke-width="1"/>' +
+                '<path d="M0,156 Q90,151 180,156 T400,156" fill="none" stroke="rgba(255,255,255,0.16)" stroke-width="1.4"/>' +
+                '<path d="M0,176 Q110,170 220,176 T400,176" fill="none" stroke="rgba(255,255,255,0.13)" stroke-width="1.8"/>' +
+                '<path d="M0,202 Q100,195 200,202 T400,202" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="2.2"/>' +
+                '<path d="M0,234 Q120,226 240,234 T400,234" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="2.6"/>';
+
+            // 3D-деревянный мосток в левом нижнем углу
+            var pier3d =
+                '<g>' +
+                    '<polygon points="0,196 104,218 82,260 0,260" fill="#291d14"/>' +
+                    '<polygon points="0,192 106,214 100,221 0,200" fill="#5c4028"/>' +
+                    '<line x1="18" y1="204" x2="6" y2="260" stroke="#1c130d" stroke-width="2"/>' +
+                    '<line x1="46" y1="209" x2="34" y2="260" stroke="#1c130d" stroke-width="2"/>' +
+                    '<line x1="74" y1="215" x2="62" y2="260" stroke="#1c130d" stroke-width="2"/>' +
+                    '<polygon points="0,192 106,214 104,216 0,194" fill="#926a46" opacity="0.65"/>' +
+                '</g>';
+
             svg.innerHTML =
                 '<defs>' +
                     '<linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">' +
@@ -6824,19 +7025,40 @@
                     '</linearGradient>' +
                     '<linearGradient id="waterGrad" x1="0" y1="0" x2="0" y2="1">' +
                         '<stop offset="0%" stop-color="' + waterTop + '"/>' +
-                        '<stop offset="100%" stop-color="' + waterBot + '"/>' +
+                        '<stop offset="45%" stop-color="' + waterBot + '"/>' +
+                        '<stop offset="100%" stop-color="#020617"/>' +
                     '</linearGradient>' +
+                    '<linearGradient id="horizonMist" x1="0" y1="0" x2="0" y2="1">' +
+                        '<stop offset="0%" stop-color="' + skyBot + '" stop-opacity="0"/>' +
+                        '<stop offset="75%" stop-color="' + waterTop + '" stop-opacity="0.45"/>' +
+                        '<stop offset="100%" stop-color="' + waterTop + '" stop-opacity="0.95"/>' +
+                    '</linearGradient>' +
+                    '<clipPath id="skyClip"><rect x="0" y="0" width="400" height="136"/></clipPath>' +
+                    '<clipPath id="waterClip"><rect x="0" y="135" width="400" height="125"/></clipPath>' +
                 '</defs>' +
-                '<rect x="0" y="0" width="400" height="136" fill="url(#skyGrad)"/>' +
-                sunMoon +
-                bgScenery +
-                '<rect x="0" y="134" width="400" height="126" fill="url(#waterGrad)"/>' +
-                '<path d="M0,152 Q100,147 200,152 T400,152" fill="none" stroke="rgba(255,255,255,0.14)" stroke-width="1.5"/>' +
-                '<path d="M0,188 Q100,183 200,188 T400,188" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="1.5"/>' +
-                waterDecor +
-                fishShadows +
-                '<polygon points="0,192 98,214 78,260 0,260" fill="#3f2e21"/>' +
-                '<polygon points="0,192 98,214 94,220 0,199" fill="#15803d"/>' +
+                // 1. ВЕРХНЯЯ ЧАСТЬ (СТРОГО НЕБО И БЕРЕГ y=0..136)
+                '<g clip-path="url(#skyClip)">' +
+                    '<rect x="0" y="0" width="400" height="136" fill="url(#skyGrad)"/>' +
+                    '<image href="' + photoUrl + '" x="0" y="0" width="400" height="140" preserveAspectRatio="xMidYMid slice" opacity="0.88"/>' +
+                    '<rect x="0" y="0" width="400" height="136" fill="' + timeTintColor + '" opacity="' + timeTintOp + '"/>' +
+                    sunMoon +
+                    '<g opacity="0.45">' + bgScenery + '</g>' +
+                    '<rect x="0" y="102" width="400" height="35" fill="url(#horizonMist)"/>' +
+                '</g>' +
+                // 2. НИЖНЯЯ ЧАСТЬ (СТРОГО 3D-ВОДА y=135..260, РЫБЫ ПЛАВАЮТ ТОЛЬКО ЗДЕСЬ)
+                '<g clip-path="url(#waterClip)">' +
+                    '<rect x="0" y="135" width="400" height="125" fill="url(#waterGrad)"/>' +
+                    // Зеркальное отражение берега в воде для 3D-объёма
+                    '<image href="' + photoUrl + '" x="0" y="-270" width="400" height="135" preserveAspectRatio="xMidYMid slice" transform="scale(1,-1)" opacity="0.24"/>' +
+                    '<rect x="0" y="135" width="400" height="125" fill="url(#waterGrad)" opacity="0.58"/>' +
+                    waterGlare +
+                    waterWaves3d +
+                    waterDecor +
+                    fishShadows +
+                '</g>' +
+                // Чёткая линия горизонта воды
+                '<line x1="0" y1="135" x2="400" y2="135" stroke="rgba(255,255,255,0.22)" stroke-width="1"/>' +
+                pier3d +
                 lineAndBobber +
                 rodSvg +
                 rainHtml;
@@ -6845,30 +7067,45 @@
         function updateFightHud() {
             if (!activeFish) return;
 
-            var hintEl = document.getElementById('fight-fish-hint');
-            hintEl.textContent = '🐟 Рыба сопротивляется!';
-            hintEl.style.color = '#38bdf8';
+            var pct = Math.round(lineTension);
+            var dragVal = (state && typeof state.frictionDrag === 'number') ? state.frictionDrag : 20;
 
-            document.getElementById('fight-distance-text').textContent = 'До берега: ' + fishDistance.toFixed(1) + ' м';
+            var distEl = document.getElementById('fight-distance-text');
+            if (distEl) distEl.textContent = fishDistance.toFixed(1) + ' м';
 
-            var traitEl = document.getElementById('fight-trait-text');
-            var surgeEl = document.getElementById('fight-surge-text');
-            if (traitEl) traitEl.textContent = '🎣 Вываживание';
-            if (surgeEl) {
-                if (surgeTicksLeft > 0) {
-                    surgeEl.textContent = '⚠️ РЫВОК В ГЛУБИНУ!';
-                    surgeEl.style.color = '#f87171';
+            var pillEl = document.getElementById('fight-status-pill');
+            var wheelBtn = document.getElementById('btn-reel-wheel');
+            if (pillEl) {
+                if (pct >= 82) {
+                    pillEl.textContent = '🔴 ОПАСНО! ОТПУСТИ КАТУШКУ И ОСЛАБЬ ФРИКЦИОН!';
+                    pillEl.style.background = 'rgba(239, 68, 68, 0.25)';
+                    pillEl.style.borderColor = '#ef4444';
+                    pillEl.style.color = '#fca5a5';
+                } else if (surgeTicksLeft > 0) {
+                    pillEl.textContent = '🔥 РЫВОК РЫБЫ! Подожди или ослабь фрикцион';
+                    pillEl.style.background = 'rgba(245, 158, 11, 0.22)';
+                    pillEl.style.borderColor = '#f59e0b';
+                    pillEl.style.color = '#fde047';
+                } else if (pct >= 62) {
+                    pillEl.textContent = '🟡 ОСТОРОЖНО — натяжение растёт';
+                    pillEl.style.background = 'rgba(245, 158, 11, 0.16)';
+                    pillEl.style.borderColor = 'rgba(251, 191, 36, 0.55)';
+                    pillEl.style.color = '#fde68a';
                 } else {
-                    surgeEl.textContent = 'Ровный ход';
-                    surgeEl.style.color = '#94a3b8';
+                    pillEl.textContent = '🟢 МОЖНО МОТАТЬ — зажми катушку!';
+                    pillEl.style.background = 'rgba(16, 185, 129, 0.18)';
+                    pillEl.style.borderColor = 'rgba(52, 211, 153, 0.5)';
+                    pillEl.style.color = '#6ee7b7';
                 }
             }
+            if (wheelBtn) {
+                wheelBtn.classList.toggle('reel-danger', pct >= 82);
+            }
 
-            var dragVal = (state && typeof state.frictionDrag === 'number') ? state.frictionDrag : 20;
             var dragLbl = document.getElementById('fight-drag-label');
             if (dragLbl) {
                 if (dragVal >= 30) {
-                    dragLbl.textContent = '⚠️ Фрикцион: 30 / 30 (КЛИН!)';
+                    dragLbl.textContent = '⚠️ Фрикцион: 30 (КЛИН!)';
                     dragLbl.style.color = '#f87171';
                 } else {
                     dragLbl.textContent = '⚙️ Фрикцион: ' + dragVal + ' / 30';
@@ -6877,6 +7114,7 @@
             }
             var slider = document.getElementById('fight-drag-slider');
             if (slider && parseInt(slider.value, 10) !== dragVal) slider.value = dragVal;
+
             var spoolEl = document.getElementById('fight-spool-text');
             if (spoolEl && activeFightProfile) {
                 var maxLen = activeFightProfile.maxDistance || 75;
@@ -6885,15 +7123,22 @@
                 spoolEl.style.color = spoolPct > 0.8 ? '#f87171' : (spoolPct > 0.6 ? '#fbbf24' : '#cbd5e1');
             }
 
-            var pct = Math.round(lineTension);
-            document.getElementById('fight-tension-pct').textContent = pct + '%';
+            var tensPctEl = document.getElementById('fight-tension-pct');
+            if (tensPctEl) {
+                tensPctEl.textContent = pct + '%';
+                tensPctEl.style.color = pct < 55 ? '#34d399' : (pct < 80 ? '#fbbf24' : '#f87171');
+            }
             var fill = document.getElementById('fight-tension-fill');
-            fill.style.width = pct + '%';
-            fill.style.backgroundColor = pct > 78 ? '#ef4444' : (pct > 52 ? '#f59e0b' : '#10b981');
+            if (fill) {
+                fill.style.width = pct + '%';
+                fill.style.backgroundColor = pct > 78 ? '#ef4444' : (pct > 52 ? '#f59e0b' : '#10b981');
+            }
 
             var stPct = Math.round(fishStamina);
-            document.getElementById('fight-stamina-pct').textContent = stPct + '%';
-            document.getElementById('fight-stamina-fill').style.width = stPct + '%';
+            var stEl = document.getElementById('fight-stamina-pct');
+            if (stEl) stEl.textContent = stPct + '%';
+            var stFill = document.getElementById('fight-stamina-fill');
+            if (stFill) stFill.style.width = stPct + '%';
         }
 
         function renderAll() {
@@ -7009,7 +7254,7 @@
             var estRareChancePct = +(curRates.rareChance * 100).toFixed(2);
             var capLabel = curLoc.maxGearKg >= 9000 ? 'Без ограничений' : ('до ' + curLoc.maxGearKg + ' кг');
             var rulesHtml = '<div style="display:flex; justify-content:space-between; align-items:center; font-size:11px;">' +
-                '<span>⚖️ Лимит снастей: <b style="color:' + (checkRig.ok ? '#6ee7b7' : '#fca5a5') + ';">' + capLabel + '</b></span>' +
+                '<span>⚖️ Лимит уд./кат.: <b style="color:' + (checkRig.ok ? '#6ee7b7' : '#fca5a5') + ';">' + capLabel + '</b></span>' +
                 '<span>🏡 Дом: <b style="color:#fde68a;">+' + houseBonus + '%</b> • Шанс: <b style="color:#38bdf8;">' + estRegChancePct + '%</b> / <b style="color:#c084fc;">' + estRareChancePct + '%</b></span>' +
             '</div>' +
             '<div style="margin-top:3px; font-size:10px; color:#94a3b8;">' +
